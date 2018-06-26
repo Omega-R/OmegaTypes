@@ -2,7 +2,7 @@
 [![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://opensource.org/licenses/MIT)
 
 # OmegaTypes
-OmegaOmegaTypes it's cover for:  
+OmegaTypes it's cover for:  
 1) String and @StringRes. 
 You can create Text class inside your presenter or somewhere else, and set it in activity. Activity doesn't need to know what type 
 of resource you use.
