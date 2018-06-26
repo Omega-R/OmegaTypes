@@ -6,8 +6,7 @@ OmegaOmegaTypes it's cover for:
 1) String and @StringRes. 
 You can create Text class inside your presenter or somewhere else, and set it in activity. Activity doesn't need to know what type 
 of resource you use.
-2) Drawable, Bitmap, @DrawableRes
-Image - similar with Text class.
+2) Drawable, Bitmap, @DrawableRes. Class Image has the similar idea with Text class.
 
 # Installation
 To get a Git project into your build:
