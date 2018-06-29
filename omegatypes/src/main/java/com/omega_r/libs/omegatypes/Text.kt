@@ -1,9 +1,12 @@
 package com.omega_r.libs.omegatypes
 
+import android.app.Activity
+import android.content.Context
 import android.content.res.Resources
 import android.support.annotation.StringRes
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import java.io.Serializable
 
 interface Text : Serializable {
@@ -48,7 +51,7 @@ interface Text : Serializable {
         override fun isEmpty(): Boolean = stringRes <= 0
 
         override fun getString(resources: Resources): String {
-            return resources.getString(stringRes, formatArgs)
+            return resources.getString(stringRes, *formatArgs)
         }
     }
 
@@ -68,4 +71,11 @@ fun Text.applyTo(textView: TextView) {
 
 fun Text.applyErrorTo(editText: EditText) {
     editText.setError(this)
+}
+
+fun Activity.setTitle(text: Text) {
+    title = text.getString(resources)
+}
+fun Context.toast(text: Text, duration: Int = Toast.LENGTH_SHORT): Toast {
+    return Toast.makeText(this, text.getString(resources), duration).apply { show() }
 }

@@ -48,7 +48,7 @@ interface Image : Serializable {
 }
 
 fun ImageView.setImage(image: Image) {
-    setImageDrawable(image.getDrawable(this.context))
+    setImageDrawable(image.getDrawable(context))
 }
 
 @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
