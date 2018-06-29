@@ -23,7 +23,7 @@ allprojects {
 **Step 2.** Add the dependency
 ```
 dependencies {
-    implementation 'com.github.Omega-R:OmegaTypes:0.0.1'
+    implementation 'com.github.Omega-R:OmegaTypes:0.0.2'
 }
 ```
 
