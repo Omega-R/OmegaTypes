@@ -12,33 +12,39 @@ import android.view.View
 import android.widget.ImageView
 import java.io.Serializable
 
-interface Image : Serializable {
+open class Image : Serializable {
 
-    fun getDrawable(context: Context): Drawable?
+    open fun getDrawable(context: Context): Drawable? = null
 
     companion object {
 
+        @JvmStatic
+        fun empty() = Image()
+
+        @JvmStatic
         fun from(@DrawableRes stringRes: Int): Image = ResourceImage(stringRes)
 
+        @JvmStatic
         fun from(drawable: Drawable): Image = DrawableImage(drawable)
 
+        @JvmStatic
         fun from(bitmap: Bitmap): Image = BitmapImage(bitmap)
     }
 
-    class ResourceImage(@DrawableRes private val resId: Int) : Image {
+    class ResourceImage(@DrawableRes private val resId: Int) : Image() {
 
         override fun getDrawable(context: Context): Drawable? =
                 ContextCompat.getDrawable(context, resId)
 
     }
 
-    class DrawableImage(private val drawable: Drawable) : Image {
+    class DrawableImage(private val drawable: Drawable) : Image() {
 
         override fun getDrawable(context: Context): Drawable = drawable
 
     }
 
-    class BitmapImage(private val bitmap: Bitmap) : Image {
+    class BitmapImage(private val bitmap: Bitmap) : Image() {
 
         override fun getDrawable(context: Context): Drawable =
                 BitmapDrawable(context.resources, bitmap)

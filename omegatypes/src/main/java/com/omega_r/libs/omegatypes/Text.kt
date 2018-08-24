@@ -9,24 +9,30 @@ import android.widget.TextView
 import android.widget.Toast
 import java.io.Serializable
 
-interface Text : Serializable {
+open class Text private constructor() : Serializable {
 
-    fun isEmpty(): Boolean
-    fun getString(resources: Resources): String?
+    open fun isEmpty(): Boolean = true
+    open fun getString(resources: Resources): String? = null
 
     companion object {
+        @JvmStatic
+        fun empty(): Text = Text()
 
+        @JvmStatic
         fun from(string: String): Text = StringText(string)
 
+        @JvmStatic
         fun from(@StringRes stringRes: Int): Text = ResourceText(stringRes)
 
+        @JvmStatic
         fun from(@StringRes stringRes: Int, vararg formatArgs: Any): Text =
                 FormatResourceText(stringRes, *formatArgs)
 
+        @JvmStatic
         fun from(throwable: Throwable): Text = StringText(throwable.message)
     }
 
-    class StringText constructor(private val string: String?) : Text {
+    private class StringText internal constructor(private val string: String?) : Text() {
 
         override fun isEmpty(): Boolean = string.isNullOrEmpty()
 
@@ -35,7 +41,7 @@ interface Text : Serializable {
         }
     }
 
-    class ResourceText internal constructor(@StringRes private val stringRes: Int) : Text {
+    private class ResourceText internal constructor(@StringRes private val stringRes: Int) : Text() {
 
         override fun isEmpty(): Boolean = stringRes <= 0
 
@@ -45,8 +51,8 @@ interface Text : Serializable {
 
     }
 
-    class FormatResourceText internal constructor(@StringRes private val stringRes: Int,
-                                                  private vararg val formatArgs: Any) : Text {
+    private class FormatResourceText internal constructor(@StringRes private val stringRes: Int,
+                                                  private vararg val formatArgs: Any) : Text() {
 
         override fun isEmpty(): Boolean = stringRes <= 0
 
