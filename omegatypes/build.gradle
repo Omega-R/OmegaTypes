@@ -28,5 +28,6 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compileOnly "com.google.code.gson:gson:$gsonVersion"
     compileOnly "com.android.support:appcompat-v7:$supportVersion"
 }
