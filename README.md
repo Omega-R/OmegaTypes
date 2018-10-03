@@ -29,13 +29,26 @@ dependencies {
 
 # Usage
 
+**Text**
 ```
 val text = Text.from(R.string.hello_world)
 text.applyTo(exampleTextView) // or textView.setText(text)
-        
+```
+**Image**
+```
 val image = Image.from(R.mipmap.ic_launcher)
 image.applyTo(imageView) // or imageView.setImage(image)
-
+```
+**PostProcessable**
+```
+GsonBuilder().registerTypeAdapterFactory(PostProcessingFactory())
+```
+```
+class MyClass : Serializable, PostProcessable {
+    override fun onGsonPostProcess() {
+        // this should be called right after deserialization
+    }
+}
 ```
 
 # License
