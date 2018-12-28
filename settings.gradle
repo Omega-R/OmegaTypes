@@ -1,1 +1,1 @@
-include ':app', ':omegatypes'
+include ':app', ':omegatypes', ':picasso'
