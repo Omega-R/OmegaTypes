@@ -1,18 +1,16 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
-apply plugin: 'com.github.dcendents.android-maven'
-group = 'com.github.Omega-R'
-
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion 28
+
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
 
     }
 
@@ -25,7 +23,19 @@ android {
 
 }
 
+
 dependencies {
+
+    implementation project(':omegatypes')
+
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation ('com.squareup.picasso:picasso:2.71828') {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
+repositories {
+    mavenCentral()
 }
