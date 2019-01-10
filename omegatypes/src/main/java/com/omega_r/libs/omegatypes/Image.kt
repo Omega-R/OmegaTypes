@@ -7,11 +7,9 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.support.annotation.DrawableRes
-import android.support.annotation.Px
-import android.support.v4.view.ViewCompat
 import android.view.View
 import android.widget.ImageView
+import com.omega_r.libs.omegatypes.Image.Companion.applyBackground
 import java.io.*
 
 open class Image : Serializable {
@@ -21,8 +19,9 @@ open class Image : Serializable {
     }
 
     open fun applyBackground(view: View) {
-        ViewCompat.setBackground(view, null)
+        applyBackground(view, null)
     }
+
 
     @Throws(IOException::class)
     open fun getStream(context: Context,
@@ -32,22 +31,35 @@ open class Image : Serializable {
         }
     }
 
+    protected fun applyBackground(view: View, background: Drawable?) {
+        Image.applyBackground(view, background)
+    }
+
     companion object {
 
         @JvmStatic
         fun empty() = Image()
 
         @JvmStatic
-        fun from(@DrawableRes stringRes: Int): Image = ResourceImage(stringRes)
+        fun from(stringRes: Int): Image = ResourceImage(stringRes)
 
         @JvmStatic
         fun from(drawable: Drawable): Image = DrawableImage(drawable)
 
         @JvmStatic
         fun from(bitmap: Bitmap): Image = BitmapImage(bitmap)
+
+        internal fun applyBackground(view: View, background: Drawable?) {
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN) {
+                @Suppress("DEPRECATION")
+                view.setBackgroundDrawable(background)
+            } else {
+                view.background = background;
+            }
+        }
     }
 
-    class ResourceImage(@DrawableRes private val resId: Int) : Image() {
+    class ResourceImage(private val resId: Int) : Image() {
 
         override fun applyImage(imageView: ImageView) {
             imageView.setImageResource(resId)
@@ -71,7 +83,7 @@ open class Image : Serializable {
         }
 
         override fun applyBackground(view: View) {
-            ViewCompat.setBackground(view, drawable)
+            applyBackground(view, drawable)
         }
 
         override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
@@ -87,7 +99,7 @@ open class Image : Serializable {
         }
 
         override fun applyBackground(view: View) {
-            ViewCompat.setBackground(view, BitmapDrawable(view.resources, bitmap))
+            applyBackground(view, BitmapDrawable(view.resources, bitmap))
         }
 
         override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
@@ -97,7 +109,7 @@ open class Image : Serializable {
 
 }
 
-fun Bitmap.toInputStream(compressFormat: Bitmap.CompressFormat, quality: Int ): InputStream {
+fun Bitmap.toInputStream(compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
     val stream = ByteArrayOutputStream()
     compress(compressFormat, quality, stream)
     val byteArray = stream.toByteArray()
@@ -105,8 +117,8 @@ fun Bitmap.toInputStream(compressFormat: Bitmap.CompressFormat, quality: Int ): 
 }
 
 fun Drawable.toBitmap(
-        @Px width: Int = intrinsicWidth,
-        @Px height: Int = intrinsicHeight,
+        width: Int = intrinsicWidth,
+        height: Int = intrinsicHeight,
         config: Bitmap.Config? = null
 ): Bitmap {
     if (this is BitmapDrawable) {
@@ -135,7 +147,7 @@ fun ImageView.setImage(image: Image?) {
 }
 
 fun View.setBackground(image: Image?) {
-    image?.applyBackground(this) ?: ViewCompat.setBackground(this, null)
+    image?.applyBackground(this) ?: applyBackground(this, null)
 
 }
 

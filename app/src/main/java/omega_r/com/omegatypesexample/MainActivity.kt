@@ -9,8 +9,6 @@ import com.omega_r.libs.omegatypes.Image
 import com.omega_r.libs.omegatypes.Text
 import com.omega_r.libs.omegatypes.applyTo
 import com.omega_r.libs.omegatypes.picasso.from
-import com.omega_r.libs.omegatypes.setBackground
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlin.concurrent.thread
 
 class MainActivity : BaseActivity() {

@@ -6,11 +6,9 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
-import android.support.v4.view.ViewCompat
 import android.view.View
 import android.widget.ImageView
 import com.omega_r.libs.omegatypes.Image
-import com.omega_r.libs.omegatypes.toBitmap
 import com.omega_r.libs.omegatypes.toInputStream
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
@@ -33,7 +31,8 @@ class PicassoImage(private val url: String) : Image() {
     }
 
     override fun applyBackground(view: View) {
-        ViewCompat.setBackground(view, null)
+        applyBackground(view, null)
+
         val requestCreator = Picasso.get().load(url)
 
         if (view.width > 0 && view.height > 0) {
@@ -43,15 +42,15 @@ class PicassoImage(private val url: String) : Image() {
         requestCreator.into(object : Target {
 
             override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-                ViewCompat.setBackground(view, placeHolderDrawable)
+                applyBackground(view, placeHolderDrawable)
             }
 
             override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-                ViewCompat.setBackground(view, errorDrawable)
+                applyBackground(view, errorDrawable)
             }
 
             override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                ViewCompat.setBackground(view, BitmapDrawable(view.resources, bitmap))
+                applyBackground(view, BitmapDrawable(view.resources, bitmap))
             }
 
         })

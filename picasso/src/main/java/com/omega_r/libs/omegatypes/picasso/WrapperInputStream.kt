@@ -11,7 +11,7 @@ internal class WrapperInputStream : InputStream() {
         set(value) {
             field = value
             availableInitValue = 0
-            synchronized(o){
+            synchronized(o) {
                 o.notify()
             }
         }

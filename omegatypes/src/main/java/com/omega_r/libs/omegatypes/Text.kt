@@ -3,7 +3,6 @@ package com.omega_r.libs.omegatypes
 import android.app.Activity
 import android.content.Context
 import android.content.res.Resources
-import android.support.annotation.StringRes
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -36,10 +35,10 @@ open class Text private constructor() : Serializable {
         fun from(string: String): Text = StringText(string)
 
         @JvmStatic
-        fun from(@StringRes stringRes: Int): Text = ResourceText(stringRes)
+        fun from(stringRes: Int): Text = ResourceText(stringRes)
 
         @JvmStatic
-        fun from(@StringRes stringRes: Int, vararg formatArgs: Any): Text =
+        fun from(stringRes: Int, vararg formatArgs: Any): Text =
                 FormatResourceText(stringRes, *formatArgs)
 
         @JvmStatic
@@ -69,7 +68,7 @@ open class Text private constructor() : Serializable {
 
     }
 
-    private class ResourceText internal constructor(@StringRes private val stringRes: Int) : Text() {
+    private class ResourceText internal constructor(private val stringRes: Int) : Text() {
 
         override fun isEmpty(): Boolean = stringRes <= 0
 
@@ -92,7 +91,7 @@ open class Text private constructor() : Serializable {
 
     }
 
-    private class FormatResourceText internal constructor(@StringRes private val stringRes: Int,
+    private class FormatResourceText internal constructor(private val stringRes: Int,
                                                           private vararg val formatArgs: Any) : Text() {
 
         override fun isEmpty(): Boolean = stringRes <= 0
