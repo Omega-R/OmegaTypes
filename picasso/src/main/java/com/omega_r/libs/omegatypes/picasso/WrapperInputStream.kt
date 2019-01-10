@@ -7,12 +7,13 @@ import java.io.InputStream
  */
 internal class WrapperInputStream : InputStream() {
 
-
     internal var inputStream: InputStream? = null
         set(value) {
             field = value
             availableInitValue = 0
-            o.notifyAll()
+            synchronized(o){
+                o.notify()
+            }
         }
 
     private val o = Object()
@@ -21,7 +22,9 @@ internal class WrapperInputStream : InputStream() {
 
     override fun read(): Int {
         if (inputStream == null) {
-            o.wait()
+            synchronized(o) {
+                o.wait()
+            }
         }
         val inputStream = inputStream ?: return -1
         return inputStream.read()

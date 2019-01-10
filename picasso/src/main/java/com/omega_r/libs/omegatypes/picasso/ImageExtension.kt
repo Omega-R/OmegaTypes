@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Handler
+import android.os.Looper
 import android.support.v4.view.ViewCompat
 import android.view.View
 import android.widget.ImageView
@@ -32,59 +34,64 @@ class PicassoImage(private val url: String) : Image() {
 
     override fun applyBackground(view: View) {
         ViewCompat.setBackground(view, null)
-        Picasso.get()
-                .load(url)
-                .resize(view.width, view.height)
-                .into(object : Target {
+        val requestCreator = Picasso.get().load(url)
 
-                    override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-                        ViewCompat.setBackground(view, placeHolderDrawable)
-                    }
+        if (view.width > 0 && view.height > 0) {
+            requestCreator.resize(view.width, view.height)
+        }
 
-                    override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-                        ViewCompat.setBackground(view, errorDrawable)
-                    }
+        requestCreator.into(object : Target {
 
-                    override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                        ViewCompat.setBackground(view, BitmapDrawable(view.resources, bitmap))
-                    }
+            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
+                ViewCompat.setBackground(view, placeHolderDrawable)
+            }
 
-                })
+            override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+                ViewCompat.setBackground(view, errorDrawable)
+            }
+
+            override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                ViewCompat.setBackground(view, BitmapDrawable(view.resources, bitmap))
+            }
+
+        })
     }
 
-    override fun getStream(context: Context): InputStream {
+    override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
         val stream = WrapperInputStream()
 
-        Picasso.get()
-                .load(url)
-                .into(object : Target {
 
-                    override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-                        // stream can only send data once
-                    }
+        val runnable = Runnable {
+            Picasso.get()
+                    .load(url)
+                    .into(object : Target {
 
-                    override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-                        if (errorDrawable != null) {
-                            stream.inputStream = errorDrawable.toBitmap().toInputStream()
-                        } else {
+                        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
+                            // stream can only send data once
+                        }
+
+                        override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
                             stream.inputStream = null
                         }
 
-                    }
-
-                    override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                        if (bitmap != null) {
-                            stream.inputStream = bitmap.toInputStream()
-                        } else {
-                            stream.inputStream = null
+                        override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                            if (bitmap != null) {
+                                stream.inputStream = bitmap.toInputStream(compressFormat, quality)
+                            } else {
+                                stream.inputStream = null
+                            }
                         }
-                    }
 
-                })
+                    })
+        }
+
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            Handler(Looper.getMainLooper()).post(runnable)
+        } else {
+            runnable.run()
+        }
 
         return stream
     }
-
-
 
 }

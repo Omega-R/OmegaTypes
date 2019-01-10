@@ -7,13 +7,9 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.support.annotation.DrawableRes
 import android.support.annotation.Px
-import android.support.annotation.RequiresApi
-import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewCompat
-import android.system.Os.read
 import android.view.View
 import android.widget.ImageView
 import java.io.*
@@ -29,8 +25,9 @@ open class Image : Serializable {
     }
 
     @Throws(IOException::class)
-    open fun getStream(context: Context): InputStream {
-        return object:InputStream() {
+    open fun getStream(context: Context,
+                       compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG, quality: Int = 100): InputStream {
+        return object : InputStream() {
             override fun read() = -1
         }
     }
@@ -60,9 +57,9 @@ open class Image : Serializable {
             view.setBackgroundResource(resId)
         }
 
-        override fun getStream(context: Context): InputStream {
+        override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
             return BitmapFactory.decodeResource(context.resources, resId)
-                    .toInputStream()
+                    .toInputStream(compressFormat, quality)
         }
 
     }
@@ -77,8 +74,8 @@ open class Image : Serializable {
             ViewCompat.setBackground(view, drawable)
         }
 
-        override fun getStream(context: Context): InputStream {
-            return drawable.toBitmap().toInputStream()
+        override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
+            return drawable.toBitmap().toInputStream(compressFormat, quality)
         }
 
     }
@@ -93,16 +90,16 @@ open class Image : Serializable {
             ViewCompat.setBackground(view, BitmapDrawable(view.resources, bitmap))
         }
 
-        override fun getStream(context: Context): InputStream {
-            return bitmap.toInputStream()
+        override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
+            return bitmap.toInputStream(compressFormat, quality)
         }
     }
 
 }
 
-fun Bitmap.toInputStream(): InputStream {
+fun Bitmap.toInputStream(compressFormat: Bitmap.CompressFormat, quality: Int ): InputStream {
     val stream = ByteArrayOutputStream()
-    compress(Bitmap.CompressFormat.JPEG, 100, stream)
+    compress(compressFormat, quality, stream)
     val byteArray = stream.toByteArray()
     return ByteArrayInputStream(byteArray)
 }
