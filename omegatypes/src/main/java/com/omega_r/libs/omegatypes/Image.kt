@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.util.Base64
 import android.view.View
 import android.widget.ImageView
 import com.omega_r.libs.omegatypes.Image.Companion.applyBackground
@@ -57,6 +58,23 @@ open class Image : Serializable {
         @JvmStatic
         fun from(bitmap: Bitmap): Image = BitmapImage(bitmap)
 
+        @JvmStatic
+        fun from(imageBytes: ByteArray): Image {
+            return from(BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size) ?: return empty())
+        }
+
+        @JvmStatic
+        fun from(base64String: String, flags: Int): Image {
+            val position = base64String.indexOf(",")
+            val data = if (position != -1) {
+                base64String.substring(position + 1)
+            } else {
+                base64String
+            }
+            return from(Base64.decode(data, flags))
+        }
+
+
         internal fun applyBackground(view: View, background: Drawable?) {
             if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN) {
                 @Suppress("DEPRECATION")
@@ -66,55 +84,54 @@ open class Image : Serializable {
             }
         }
     }
+}
 
-    class ResourceImage(private val resId: Int) : Image() {
+class ResourceImage(private val resId: Int) : Image() {
 
-        override fun applyImage(imageView: ImageView, placeholderResId: Int) {
-            imageView.setImageResource(resId)
-        }
-
-        override fun applyBackground(view: View, placeholderResId: Int) {
-            view.setBackgroundResource(resId)
-        }
-
-        override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
-            return BitmapFactory.decodeResource(context.resources, resId)
-                    .toInputStream(compressFormat, quality)
-        }
-
+    override fun applyImage(imageView: ImageView, placeholderResId: Int) {
+        imageView.setImageResource(resId)
     }
 
-    class DrawableImage(private val drawable: Drawable) : Image() {
-
-        override fun applyImage(imageView: ImageView, placeholderResId: Int) {
-            imageView.setImageDrawable(drawable)
-        }
-
-        override fun applyBackground(view: View, placeholderResId: Int) {
-            applyBackground(view, drawable)
-        }
-
-        override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
-            return drawable.toBitmap().toInputStream(compressFormat, quality)
-        }
-
+    override fun applyBackground(view: View, placeholderResId: Int) {
+        view.setBackgroundResource(resId)
     }
 
-    class BitmapImage(private val bitmap: Bitmap) : Image() {
-
-        override fun applyImage(imageView: ImageView, placeholderResId: Int) {
-            imageView.setImageBitmap(bitmap)
-        }
-
-        override fun applyBackground(view: View, placeholderResId: Int) {
-            applyBackground(view, BitmapDrawable(view.resources, bitmap))
-        }
-
-        override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
-            return bitmap.toInputStream(compressFormat, quality)
-        }
+    override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
+        return BitmapFactory.decodeResource(context.resources, resId)
+                .toInputStream(compressFormat, quality)
     }
 
+}
+
+class DrawableImage(private val drawable: Drawable) : Image() {
+
+    override fun applyImage(imageView: ImageView, placeholderResId: Int) {
+        imageView.setImageDrawable(drawable)
+    }
+
+    override fun applyBackground(view: View, placeholderResId: Int) {
+        applyBackground(view, drawable)
+    }
+
+    override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
+        return drawable.toBitmap().toInputStream(compressFormat, quality)
+    }
+
+}
+
+class BitmapImage(private val bitmap: Bitmap) : Image() {
+
+    override fun applyImage(imageView: ImageView, placeholderResId: Int) {
+        imageView.setImageBitmap(bitmap)
+    }
+
+    override fun applyBackground(view: View, placeholderResId: Int) {
+        applyBackground(view, BitmapDrawable(view.resources, bitmap))
+    }
+
+    override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
+        return bitmap.toInputStream(compressFormat, quality)
+    }
 }
 
 fun Bitmap.toInputStream(compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
