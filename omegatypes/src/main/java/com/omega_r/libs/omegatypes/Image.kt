@@ -14,12 +14,20 @@ import java.io.*
 
 open class Image : Serializable {
 
-    open fun applyImage(imageView: ImageView) {
-        imageView.setImageDrawable(null)
+    open fun applyImage(imageView: ImageView, placeholderResId: Int = 0) {
+        if (placeholderResId == 0) {
+            imageView.setImageDrawable(null)
+        } else {
+            imageView.setImageResource(placeholderResId)
+        }
     }
 
-    open fun applyBackground(view: View) {
-        applyBackground(view, null)
+    open fun applyBackground(view: View, placeholderResId: Int = 0) {
+        if (placeholderResId == 0) {
+            view.setBackgroundResource(placeholderResId)
+        } else {
+            applyBackground(view, null)
+        }
     }
 
 
@@ -61,11 +69,11 @@ open class Image : Serializable {
 
     class ResourceImage(private val resId: Int) : Image() {
 
-        override fun applyImage(imageView: ImageView) {
+        override fun applyImage(imageView: ImageView, placeholderResId: Int) {
             imageView.setImageResource(resId)
         }
 
-        override fun applyBackground(view: View) {
+        override fun applyBackground(view: View, placeholderResId: Int) {
             view.setBackgroundResource(resId)
         }
 
@@ -78,11 +86,11 @@ open class Image : Serializable {
 
     class DrawableImage(private val drawable: Drawable) : Image() {
 
-        override fun applyImage(imageView: ImageView) {
+        override fun applyImage(imageView: ImageView, placeholderResId: Int) {
             imageView.setImageDrawable(drawable)
         }
 
-        override fun applyBackground(view: View) {
+        override fun applyBackground(view: View, placeholderResId: Int) {
             applyBackground(view, drawable)
         }
 
@@ -94,11 +102,11 @@ open class Image : Serializable {
 
     class BitmapImage(private val bitmap: Bitmap) : Image() {
 
-        override fun applyImage(imageView: ImageView) {
+        override fun applyImage(imageView: ImageView, placeholderResId: Int) {
             imageView.setImageBitmap(bitmap)
         }
 
-        override fun applyBackground(view: View) {
+        override fun applyBackground(view: View, placeholderResId: Int) {
             applyBackground(view, BitmapDrawable(view.resources, bitmap))
         }
 
@@ -142,15 +150,29 @@ fun Drawable.toBitmap(
     return bitmap
 }
 
-fun ImageView.setImage(image: Image?) {
-    image?.applyImage(this) ?: setImageDrawable(null)
+@JvmOverloads
+fun ImageView.setImage(image: Image?, placeholderResId: Int = 0) {
+    if (image != null) {
+        image.applyImage(this, placeholderResId)
+    } else {
+        if (placeholderResId == 0) {
+            setImageDrawable(null)
+        } else {
+            setImageResource(placeholderResId)
+        }
+    }
 }
 
-fun View.setBackground(image: Image?) {
-    image?.applyBackground(this) ?: applyBackground(this, null)
-
+@JvmOverloads
+fun View.setBackground(image: Image?, placeholderResId: Int = 0) {
+    if (image != null) {
+        image.applyBackground(this, placeholderResId)
+    } else {
+        if (placeholderResId == 0) {
+            applyBackground(this, null)
+        } else {
+            setBackgroundResource(placeholderResId)
+        }
+    }
 }
 
-fun Image.applyTo(imageView: ImageView) {
-    imageView.setImage(this)
-}

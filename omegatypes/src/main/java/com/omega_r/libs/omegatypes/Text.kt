@@ -24,7 +24,7 @@ open class Text private constructor() : Serializable {
     }
 
     override fun hashCode(): Int {
-        return 31 * 17 + "".hashCode()
+        return 31 * 17
     }
 
     companion object {
@@ -38,8 +38,10 @@ open class Text private constructor() : Serializable {
         fun from(stringRes: Int): Text = ResourceText(stringRes)
 
         @JvmStatic
-        fun from(stringRes: Int, vararg formatArgs: Any): Text =
-                FormatResourceText(stringRes, *formatArgs)
+        fun from(stringRes: Int, vararg formatArgs: Any): Text = FormatResourceText(stringRes, *formatArgs)
+
+        @JvmStatic
+        fun from(stringHolder: StringHolder): Text = stringHolder.getStringText()?.let { StringText(it) } ?: empty()
 
         @JvmStatic
         fun from(throwable: Throwable): Text = StringText(throwable.message)
@@ -114,6 +116,12 @@ open class Text private constructor() : Serializable {
             result = 31 * result + Arrays.hashCode(formatArgs)
             return result
         }
+
+    }
+
+    interface StringHolder {
+
+        fun getStringText(): String?
 
     }
 
