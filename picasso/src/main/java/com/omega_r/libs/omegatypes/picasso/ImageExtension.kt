@@ -22,18 +22,25 @@ fun Image.Companion.from(url: String) = PicassoImage(url)
 
 class PicassoImage(private val url: String) : Image() {
 
-    override fun applyImage(imageView: ImageView) {
+    override fun applyImage(imageView: ImageView, placeholderResId: Int) {
         Picasso.get()
                 .load(url)
-                .fit()
-                .centerCrop()
-                .into(imageView)
+                .apply {
+                    if (placeholderResId != 0) placeholder(placeholderResId)
+                    fit()
+                    centerCrop()
+                    into(imageView)
+                }
     }
 
-    override fun applyBackground(view: View) {
-        applyBackground(view, null)
+    override fun applyBackground(view: View, placeholderResId: Int) {
+        super.applyBackground(view, placeholderResId)
 
         val requestCreator = Picasso.get().load(url)
+
+        if (placeholderResId != 0) {
+            requestCreator.placeholder(placeholderResId)
+        }
 
         if (view.width > 0 && view.height > 0) {
             requestCreator.resize(view.width, view.height)
