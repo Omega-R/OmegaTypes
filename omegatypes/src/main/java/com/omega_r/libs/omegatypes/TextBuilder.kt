@@ -71,7 +71,7 @@ class TextBuilder(capacity: Int) {
                 return true
             }
             if (textBuilder.list.firstOrNull { !it.isEmpty() } != null) return false
-            return false
+            return true
         }
 
         override fun getString(resources: Resources): String? {
