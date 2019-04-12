@@ -20,7 +20,7 @@ import java.io.InputStream
 
 fun Image.Companion.from(url: String) = PicassoImage(url)
 
-class PicassoImage(private val url: String) : Image() {
+class PicassoImage(val url: String) : Image() {
 
     override fun applyImage(imageView: ImageView, placeholderResId: Int) {
         Picasso.get()
