@@ -9,6 +9,7 @@ import android.os.Looper
 import android.view.View
 import android.widget.ImageView
 import com.omega_r.libs.omegatypes.Image
+import com.omega_r.libs.omegatypes.UrlImage
 import com.omega_r.libs.omegatypes.toInputStream
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
@@ -18,9 +19,8 @@ import java.io.InputStream
  * Created by Anton Knyazev on 28.12.18.
  */
 
-fun Image.Companion.from(url: String) = PicassoImage(url)
 
-class PicassoImage(val url: String) : Image() {
+class PicassoImage(override val url: String) : Image(), UrlImage {
 
     override fun applyImage(imageView: ImageView, placeholderResId: Int) {
         Picasso.get()
@@ -28,7 +28,11 @@ class PicassoImage(val url: String) : Image() {
                 .apply {
                     if (placeholderResId != 0) placeholder(placeholderResId)
                     fit()
-                    centerCrop()
+                    if (imageView.scaleType == ImageView.ScaleType.CENTER_INSIDE) {
+                        centerInside()
+                    } else  {
+                        centerCrop()
+                    }
                     into(imageView)
                 }
     }

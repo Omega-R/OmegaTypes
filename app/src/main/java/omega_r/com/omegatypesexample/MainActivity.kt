@@ -5,10 +5,7 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
-import com.omega_r.libs.omegatypes.Image
-import com.omega_r.libs.omegatypes.Text
-import com.omega_r.libs.omegatypes.applyTo
-import com.omega_r.libs.omegatypes.picasso.from
+import com.omega_r.libs.omegatypes.*
 import kotlin.concurrent.thread
 
 class MainActivity : BaseActivity() {

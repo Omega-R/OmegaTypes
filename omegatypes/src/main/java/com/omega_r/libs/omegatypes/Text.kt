@@ -180,28 +180,28 @@ open class Text : Serializable {
 
 }
 
-fun TextView.setText(text: Text) {
-    this.text = text.getString(this.resources)
+fun TextView.setText(text: Text?) {
+    this.text = text?.getString(this.resources)
 }
 
-fun EditText.setError(text: Text) {
-    this.error = text.getString(this.resources)
+fun EditText.setError(text: Text?) {
+    this.error = text?.getString(this.resources)
 }
 
-fun EditText.setHint(text: Text) {
-    this.hint = text.getString(this.resources)
+fun EditText.setHint(text: Text?) {
+    this.hint = text?.getString(this.resources)
 }
 
-fun Text.applyTo(textView: TextView) {
+fun Text?.applyTo(textView: TextView) {
     textView.setText(this)
 }
 
-fun Text.applyErrorTo(editText: EditText) {
+fun Text?.applyErrorTo(editText: EditText) {
     editText.setError(this)
 }
 
-fun Activity.setTitle(text: Text) {
-    title = text.getString(resources)
+fun Activity.setTitle(text: Text?) {
+    title = text?.getString(resources)
 }
 
 fun Context.toast(text: Text, duration: Int = Toast.LENGTH_SHORT): Toast {
