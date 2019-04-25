@@ -3,6 +3,10 @@ package com.omega_r.libs.omegatypes
 import android.app.Activity
 import android.content.Context
 import android.content.res.Resources
+import android.os.Build
+import android.text.SpannableString
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -10,10 +14,48 @@ import java.io.Serializable
 import java.util.*
 import kotlin.text.StringBuilder
 
-open class Text : Serializable {
+open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
+
+    companion object {
+        @JvmStatic
+        fun empty(): Text = Text(null)
+
+        @JvmStatic
+        fun from(string: String, textStyle: TextStyle? = null): Text = StringText(string, textStyle)
+
+        @JvmStatic
+        fun from(stringRes: Int, textStyle: TextStyle? = null): Text = ResourceText(stringRes, textStyle)
+
+        @JvmStatic
+        fun from(stringRes: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text = FormatResourceText(stringRes, *formatArgs, textStyle = textStyle)
+
+        @JvmStatic
+        fun from(stringHolder: StringHolder, textStyle: TextStyle? = null): Text = stringHolder.getStringText()?.let { from(it, textStyle) } ?: empty()
+
+        @JvmStatic
+        fun from(throwable: Throwable, textStyle: TextStyle? = null): Text = StringText(throwable.message, textStyle)
+
+        @JvmStatic
+        fun from(vararg texts: Text, textStyle: TextStyle? = null): Text = ArrayText(*texts, textStyle = textStyle)
+
+        @JvmStatic
+        fun from(texts: List<Text>, textStyle: TextStyle? = null): Text = ArrayText(*texts.toTypedArray(), textStyle = textStyle)
+
+    }
 
     open fun isEmpty(): Boolean = true
-    open fun getString(resources: Resources): String? = null
+
+    open fun getString(context: Context): String? = null
+
+    open fun getCharSequence(context: Context, textStyle: TextStyle? = null): CharSequence? {
+        return getString(context)?.let {
+            (defaultTextStyle + textStyle)?.applyStyle(context, it) ?: it
+        }
+    }
+
+    open fun applyTo(textView: TextView, textStyle: TextStyle? = null) {
+        textView.text = getCharSequence(textView.context, textStyle)
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -28,38 +70,15 @@ open class Text : Serializable {
         return 31 * 17
     }
 
-    companion object {
-        @JvmStatic
-        fun empty(): Text = Text()
 
-        @JvmStatic
-        fun from(string: String): Text = StringText(string)
-
-        @JvmStatic
-        fun from(stringRes: Int): Text = ResourceText(stringRes)
-
-        @JvmStatic
-        fun from(stringRes: Int, vararg formatArgs: Any): Text = FormatResourceText(stringRes, *formatArgs)
-
-        @JvmStatic
-        fun from(stringHolder: StringHolder): Text = stringHolder.getStringText()?.let { StringText(it) } ?: empty()
-
-        @JvmStatic
-        fun from(throwable: Throwable): Text = StringText(throwable.message)
-
-        @JvmStatic
-        fun from(vararg texts: Text): Text = ArrayText(*texts)
-
-        @JvmStatic
-        fun from(texts: List<Text>): Text = ArrayText(*texts.toTypedArray())
-
-    }
-
-    private class StringText internal constructor(private val string: String?) : Text() {
+    private class StringText internal constructor(
+            private val string: String?,
+            textStyle: TextStyle?
+    ) : Text(textStyle) {
 
         override fun isEmpty(): Boolean = string.isNullOrEmpty()
 
-        override fun getString(resources: Resources): String? {
+        override fun getString(context: Context): String? {
             return string
         }
 
@@ -80,12 +99,16 @@ open class Text : Serializable {
 
     }
 
-    private class ResourceText internal constructor(private val stringRes: Int) : Text() {
+    private class ResourceText internal constructor(
+            private val stringRes: Int,
+            textStyle: TextStyle?
+
+    ) : Text(textStyle) {
 
         override fun isEmpty(): Boolean = stringRes <= 0
 
-        override fun getString(resources: Resources): String {
-            return resources.getString(stringRes)
+        override fun getString(context: Context): String {
+            return context.getString(stringRes)
         }
 
         override fun equals(other: Any?): Boolean {
@@ -106,12 +129,13 @@ open class Text : Serializable {
     }
 
     private class FormatResourceText internal constructor(private val stringRes: Int,
-                                                          private vararg val formatArgs: Any) : Text() {
+                                                          private vararg val formatArgs: Any,
+                                                          textStyle: TextStyle?) : Text(textStyle) {
 
         override fun isEmpty(): Boolean = stringRes <= 0
 
-        override fun getString(resources: Resources): String {
-            return resources.getString(stringRes, *formatArgs)
+        override fun getString(context: Context): String {
+            return context.getString(stringRes, *formatArgs)
         }
 
         override fun equals(other: Any?): Boolean {
@@ -131,7 +155,10 @@ open class Text : Serializable {
 
     }
 
-    private class ArrayText internal constructor(private vararg val texts: Text): Text() {
+    private class ArrayText internal constructor(
+            private vararg val texts: Text,
+            textStyle: TextStyle?
+    ): Text(textStyle) {
 
         override fun isEmpty(): Boolean {
             if (texts.isEmpty()) return false
@@ -143,12 +170,21 @@ open class Text : Serializable {
             return true
         }
 
-        override fun getString(resources: Resources): String? {
+        override fun getString(context: Context): String? {
             val stringBuilder = StringBuilder()
             for (text in texts) {
-                stringBuilder.append(text.getString(resources))
+                stringBuilder.append(text.getString(context))
             }
             return stringBuilder.toString()
+        }
+
+        override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence? {
+            val stringBuilder = SpannableStringBuilder()
+            val newTextStyle = defaultTextStyle + textStyle
+            for (text in texts) {
+                stringBuilder.append(text.getCharSequence(context, newTextStyle))
+            }
+            return stringBuilder
         }
 
         override fun equals(other: Any?): Boolean {
@@ -180,32 +216,36 @@ open class Text : Serializable {
 
 }
 
-fun TextView.setText(text: Text?) {
-    this.text = text?.getString(this.resources)
+fun TextView.setText(text: Text?, textStyle: TextStyle? = null) {
+    if (text == null) {
+        this.text = null
+    } else {
+        text.applyTo(this, textStyle)
+    }
 }
 
-fun EditText.setError(text: Text?) {
-    this.error = text?.getString(this.resources)
+fun EditText.setError(text: Text?, textStyle: TextStyle? = null) {
+    this.error = text?.getCharSequence(context, textStyle)
 }
 
-fun EditText.setHint(text: Text?) {
-    this.hint = text?.getString(this.resources)
+fun EditText.setHint(text: Text?, textStyle: TextStyle? = null) {
+    this.hint = text?.getCharSequence(context, textStyle)
 }
 
-fun Text?.applyTo(textView: TextView) {
-    textView.setText(this)
+fun Text?.applyTo(textView: TextView, textStyle: TextStyle? = null) {
+    textView.setText(this, textStyle)
 }
 
-fun Text?.applyErrorTo(editText: EditText) {
-    editText.setError(this)
+fun Text?.applyErrorTo(editText: EditText, textStyle: TextStyle? = null) {
+    editText.setError(this, textStyle)
 }
 
-fun Activity.setTitle(text: Text?) {
-    title = text?.getString(resources)
+fun Activity.setTitle(text: Text?, textStyle: TextStyle? = null) {
+    title = text?.getCharSequence(this, textStyle)
 }
 
-fun Context.toast(text: Text, duration: Int = Toast.LENGTH_SHORT): Toast {
-    return Toast.makeText(this, text.getString(resources), duration).apply { show() }
+fun Context.toast(text: Text, duration: Int = Toast.LENGTH_SHORT, textStyle: TextStyle? = null): Toast {
+    return Toast.makeText(this, text.getCharSequence(this, textStyle), duration).apply { show() }
 }
 
 operator fun Text.plus(text: Text) : Text {
