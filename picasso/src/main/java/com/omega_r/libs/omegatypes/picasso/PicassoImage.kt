@@ -19,7 +19,6 @@ import java.io.InputStream
  * Created by Anton Knyazev on 28.12.18.
  */
 
-fun Image.Companion.from(url: String) = PicassoImage(url)
 
 class PicassoImage(override val url: String) : Image(), UrlImage {
 

@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
 import com.omega_r.libs.omegatypes.*
-import com.omega_r.libs.omegatypes.picasso.from
 import kotlin.concurrent.thread
 
 class MainActivity : BaseActivity() {
