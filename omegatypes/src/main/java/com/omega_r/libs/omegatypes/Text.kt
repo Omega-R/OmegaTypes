@@ -223,7 +223,6 @@ open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
 
 }
 
-@JvmOverloads // todo: remove, temporary
 fun TextView.setText(text: Text?, textStyle: TextStyle? = null) {
     if (text == null) {
         this.text = null
@@ -270,4 +269,6 @@ operator fun Text.plus(string: String) : Text {
     return TextBuilder.BuilderText(this) + string
 }
 
-fun String.toText() = Text.from(this)
+fun String.toText(textStyle: TextStyle? = null) = Text.from(this, textStyle)
+
+operator fun Text.plus(textStyle: TextStyle) = Text.from(this, textStyle = textStyle)
