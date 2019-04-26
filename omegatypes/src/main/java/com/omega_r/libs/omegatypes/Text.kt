@@ -216,6 +216,7 @@ open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
 
 }
 
+@JvmOverloads // todo: remove, temporary
 fun TextView.setText(text: Text?, textStyle: TextStyle? = null) {
     if (text == null) {
         this.text = null
