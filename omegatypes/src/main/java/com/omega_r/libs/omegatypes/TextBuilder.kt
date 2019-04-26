@@ -1,5 +1,6 @@
 package com.omega_r.libs.omegatypes
 
+import android.content.Context
 import android.content.res.Resources
 
 /**
@@ -62,7 +63,7 @@ class TextBuilder(capacity: Int) {
     }
 
 
-    class BuilderText(private val textBuilder: TextBuilder): Text() {
+    class BuilderText(private val textBuilder: TextBuilder): Text(null) {
 
         constructor(text: Text) : this(TextBuilder(text))
 
@@ -74,8 +75,12 @@ class TextBuilder(capacity: Int) {
             return true
         }
 
-        override fun getString(resources: Resources): String? {
-            return textBuilder.toText().getString(resources)
+        override fun getString(context: Context): String? {
+            return textBuilder.toText().getString(context)
+        }
+
+        override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence? {
+            return textBuilder.toText().getCharSequence(context, textStyle)
         }
 
         override fun equals(other: Any?): Boolean {
@@ -110,7 +115,6 @@ class TextBuilder(capacity: Int) {
             textBuilder.append(string)
             return this
         }
-
-
     }
+
 }
