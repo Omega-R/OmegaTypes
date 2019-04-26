@@ -21,24 +21,31 @@ open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
         fun empty(): Text = Text(null)
 
         @JvmStatic
+        @JvmOverloads
         fun from(string: String, textStyle: TextStyle? = null): Text = StringText(string, textStyle)
 
         @JvmStatic
+        @JvmOverloads
         fun from(stringRes: Int, textStyle: TextStyle? = null): Text = ResourceText(stringRes, textStyle)
 
         @JvmStatic
+        @JvmOverloads
         fun from(stringRes: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text = FormatResourceText(stringRes, *formatArgs, textStyle = textStyle)
 
         @JvmStatic
+        @JvmOverloads
         fun from(stringHolder: StringHolder, textStyle: TextStyle? = null): Text = stringHolder.getStringText()?.let { from(it, textStyle) } ?: empty()
 
         @JvmStatic
+        @JvmOverloads
         fun from(throwable: Throwable, textStyle: TextStyle? = null): Text = StringText(throwable.message, textStyle)
 
         @JvmStatic
+        @JvmOverloads
         fun from(vararg texts: Text, textStyle: TextStyle? = null): Text = ArrayText(*texts, textStyle = textStyle)
 
         @JvmStatic
+        @JvmOverloads
         fun from(texts: List<Text>, textStyle: TextStyle? = null): Text = ArrayText(*texts.toTypedArray(), textStyle = textStyle)
 
     }
