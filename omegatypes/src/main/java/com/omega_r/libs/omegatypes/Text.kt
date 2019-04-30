@@ -142,6 +142,16 @@ open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
         override fun isEmpty(): Boolean = stringRes <= 0
 
         override fun getString(context: Context): String {
+            if (formatArgs.firstOrNull { it is Text} != null) {
+                val list = formatArgs.map {
+                    when (it) {
+                        is Text -> it.getString(context)
+                        else -> it
+                    }
+                }
+                return context.getString(stringRes, *list.toTypedArray())
+            }
+
             return context.getString(stringRes, *formatArgs)
         }
 
