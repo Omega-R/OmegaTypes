@@ -2,12 +2,13 @@ package com.omega_r.libs.omegatypes
 
 import android.content.Context
 import android.content.res.Resources
+import java.io.Serializable
 
 /**
  * Created by Anton Knyazev on 29.03.2019.
  */
 private const val DEFAULT_CAPACITY = 10
-class TextBuilder(capacity: Int) {
+class TextBuilder(capacity: Int) : Serializable {
 
     private val list: MutableList<Text> = ArrayList(capacity)
 
