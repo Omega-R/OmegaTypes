@@ -315,4 +315,12 @@ fun String.toText(textStyle: TextStyle? = null) = Text.from(this, textStyle)
 
 fun CharSequence.toText(textStyle: TextStyle? = null) = Text.from(this, textStyle)
 
+operator fun Text?.plus(text: Text?): Text? {
+    return when {
+        this == null -> text
+        text == null -> this
+        else -> this + text
+    }
+}
+
 operator fun Text.plus(textStyle: TextStyle) = Text.from(this, textStyle = textStyle)
