@@ -319,4 +319,6 @@ operator fun Text.plus(string: String): Text {
 
 fun String.toText(textStyle: TextStyle? = null) = Text.from(this, textStyle)
 
+fun CharSequence.toText(textStyle: TextStyle? = null) = Text.from(this, textStyle)
+
 operator fun Text.plus(textStyle: TextStyle) = Text.from(this, textStyle = textStyle)
