@@ -107,12 +107,12 @@ class TextBuilder(capacity: Int) : Serializable {
             return this
         }
 
-        operator fun plus(text: Text): Text {
+        override operator fun plus(text: Text): Text {
             textBuilder.append(text)
             return this
         }
 
-        operator fun plus(string: String): Text{
+        override operator fun plus(string: String): Text {
             textBuilder.append(string)
             return this
         }

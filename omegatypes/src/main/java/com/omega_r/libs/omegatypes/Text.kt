@@ -70,6 +70,14 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
         textView.text = getCharSequence(textView.context, textStyle)
     }
 
+    open operator fun plus(text: Text): Text {
+        return TextBuilder.BuilderText(this) + text
+    }
+
+    open operator fun plus(string: String): Text {
+        return TextBuilder.BuilderText(this) + string
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -301,20 +309,6 @@ fun Activity.setTitle(text: Text?, textStyle: TextStyle? = null) {
 
 fun Context.toast(text: Text, duration: Int = Toast.LENGTH_SHORT, textStyle: TextStyle? = null): Toast {
     return Toast.makeText(this, text.getCharSequence(this, textStyle), duration).apply { show() }
-}
-
-operator fun Text.plus(text: Text): Text {
-    if (this is TextBuilder.BuilderText) {
-        return this + text
-    }
-    return TextBuilder.BuilderText(this) + text
-}
-
-operator fun Text.plus(string: String): Text {
-    if (this is TextBuilder.BuilderText) {
-        return this + string
-    }
-    return TextBuilder.BuilderText(this) + string
 }
 
 fun String.toText(textStyle: TextStyle? = null) = Text.from(this, textStyle)
