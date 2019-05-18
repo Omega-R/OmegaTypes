@@ -24,6 +24,11 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
         @JvmOverloads
         fun from(string: String, textStyle: TextStyle? = null): Text = StringText(string, textStyle)
 
+
+        @JvmStatic
+        @JvmOverloads
+        fun from(charSequence: CharSequence, textStyle: TextStyle? = null): Text = CharSequenceText(charSequence, textStyle)
+
         @JvmStatic
         @JvmOverloads
         fun from(stringRes: Int, textStyle: TextStyle? = null): Text = ResourceText(stringRes, textStyle)
