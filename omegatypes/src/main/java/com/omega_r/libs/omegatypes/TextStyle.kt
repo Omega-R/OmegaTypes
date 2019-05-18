@@ -4,11 +4,14 @@ import android.content.Context
 import android.graphics.*
 import android.text.SpannableString
 import android.text.style.*
+import java.io.Serializable
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 
 /**
  * Created by Anton Knyazev on 25.04.2019.
  */
-abstract class TextStyle {
+abstract class TextStyle : Serializable {
 
     companion object {
 
