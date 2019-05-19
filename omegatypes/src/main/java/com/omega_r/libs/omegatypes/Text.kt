@@ -78,6 +78,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
         return TextBuilder.BuilderText(this) + string
     }
 
+    operator fun plus(textStyle: TextStyle?): Text {
+        return textStyle?.let { from(this, textStyle = textStyle) } ?: this
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -323,4 +327,6 @@ operator fun Text?.plus(text: Text?): Text? {
     }
 }
 
-operator fun Text.plus(textStyle: TextStyle) = Text.from(this, textStyle = textStyle)
+operator fun Text?.plus(textStyle: TextStyle?): Text? {
+    return this?.let { this + textStyle }
+}
