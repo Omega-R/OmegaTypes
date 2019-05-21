@@ -60,12 +60,14 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
 
     open fun getString(context: Context): String? = null
 
+    @JvmOverloads
     open fun getCharSequence(context: Context, textStyle: TextStyle? = null): CharSequence? {
         return getString(context)?.let {
             (defaultTextStyle + textStyle)?.applyStyle(context, it) ?: it
         }
     }
 
+    @JvmOverloads
     open fun applyTo(textView: TextView, textStyle: TextStyle? = null) {
         textView.text = getCharSequence(textView.context, textStyle)
     }
