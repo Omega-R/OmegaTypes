@@ -16,7 +16,7 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val text = Text.from("test ") + Text.from(R.string.hello_world, textStyle = TextStyle.bold())
+        val text = Text.from("test ") + Text.from(R.string.hello_world, Text.from(R.string.app_name), textStyle = TextStyle.bold())
         text.applyTo(exampleTextView) // or exampleTextView.setText(text)
         val image = Image.from("https://avatars1.githubusercontent.com/u/28600571")
 

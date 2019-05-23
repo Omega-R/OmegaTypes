@@ -2,22 +2,53 @@ package com.omega_r.libs.omegatypes
 
 import android.content.Context
 import android.graphics.*
-import android.os.Build
 import android.text.SpannableString
+import android.text.style.*
+import java.io.Serializable
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 
 /**
  * Created by Anton Knyazev on 25.04.2019.
  */
-abstract class TextStyle {
+abstract class TextStyle : Serializable {
 
     companion object {
-        fun color(colorRes: Int): TextStyle = Color(colorRes)
 
-        fun bold(): TextStyle = TypeFaceStyle(Typeface.BOLD)
+        private val boldTextStyle = FontStyleTextStyle(Typeface.BOLD)
 
-        fun italic(): TextStyle = TypeFaceStyle(Typeface.ITALIC)
+        private val italicTextStyle = FontStyleTextStyle(Typeface.ITALIC)
+
+        private val underlineTextStyle = UnderlineTextStyle()
+
+        private val strikethroughTextStyle = StrikethroughTextStyle()
+
+        @JvmStatic
+        fun color(color: Color): TextStyle = ColorTextStyle(color)
+
+        @JvmStatic
+        fun color(colorInt: Int): TextStyle = ColorTextStyle(Color.fromInt(colorInt))
+
+        @JvmStatic
+        fun bold(): TextStyle = boldTextStyle
+
+        @JvmStatic
+        fun italic(): TextStyle = italicTextStyle
+
+        @JvmStatic
+        fun underline(): TextStyle = underlineTextStyle
+
+        @JvmStatic
+        fun strikethrough(): TextStyle = strikethroughTextStyle
+
+        @JvmStatic
+        fun font(fontName: Text): TextStyle = FontTextStyle(fontName)
+
+        @JvmStatic
+        fun font(fontName: String): TextStyle = FontTextStyle(fontName.toText())
+
+        @JvmStatic
+        fun size(size: Size): TextStyle = SizeTextStyle(size)
 
     }
 
@@ -61,24 +92,53 @@ abstract class TextStyle {
         }
     }
 
-    private class Color(private val colorRes: Int) : TextStyle() {
+    private class ColorTextStyle(private val color: Color) : TextStyle() {
 
         override fun SpannableString.applyStyle(context: Context) {
-            val color = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                context.getColor(colorRes)
-            } else {
-                context.resources.getColor(colorRes)
-            }
+            val color = color.getColorInt(context)
             setSpan(ForegroundColorSpan(color), 0, length, 0)
         }
 
     }
 
-    private class TypeFaceStyle(private val typeFaceStyle: Int) : TextStyle() {
+    private class FontStyleTextStyle(private val typeFaceStyle: Int) : TextStyle() {
 
         override fun SpannableString.applyStyle(context: Context) {
             setSpan(StyleSpan(typeFaceStyle), 0, length, 0)
         }
+    }
+
+    private class UnderlineTextStyle : TextStyle() {
+
+        override fun SpannableString.applyStyle(context: Context) {
+            setSpan(UnderlineSpan(), 0, length, 0)
+        }
+    }
+
+    private class FontTextStyle(private val fontNameText: Text) : TextStyle() {
+
+        override fun SpannableString.applyStyle(context: Context) {
+           fontNameText.getString(context)?.let {
+               setSpan(TypefaceSpan(it),0, length, 0)
+           }
+        }
+
+    }
+
+    private class SizeTextStyle(private val size: Size) : TextStyle() {
+
+        override fun SpannableString.applyStyle(context: Context) {
+            setSpan(AbsoluteSizeSpan(size.getPixelSize(context), false), 0, length, 0)
+        }
+
+    }
+
+    private class StrikethroughTextStyle : TextStyle() {
+
+        override fun SpannableString.applyStyle(context: Context) {
+            setSpan(StrikethroughSpan(), 0, length, 0)
+        }
+
     }
 
 }

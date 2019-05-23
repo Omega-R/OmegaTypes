@@ -14,7 +14,7 @@ import java.io.Serializable
 import java.util.*
 import kotlin.text.StringBuilder
 
-open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
+open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
 
     companion object {
         @JvmStatic
@@ -23,6 +23,11 @@ open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
         @JvmStatic
         @JvmOverloads
         fun from(string: String, textStyle: TextStyle? = null): Text = StringText(string, textStyle)
+
+
+        @JvmStatic
+        @JvmOverloads
+        fun from(charSequence: CharSequence, textStyle: TextStyle? = null): Text = CharSequenceText(charSequence, textStyle)
 
         @JvmStatic
         @JvmOverloads
@@ -34,7 +39,8 @@ open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
 
         @JvmStatic
         @JvmOverloads
-        fun from(stringHolder: StringHolder, textStyle: TextStyle? = null): Text = stringHolder.getStringText()?.let { from(it, textStyle) } ?: empty()
+        fun from(stringHolder: StringHolder, textStyle: TextStyle? = null): Text = stringHolder.getStringText()?.let { from(it, textStyle) }
+                ?: empty()
 
         @JvmStatic
         @JvmOverloads
@@ -54,14 +60,28 @@ open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
 
     open fun getString(context: Context): String? = null
 
+    @JvmOverloads
     open fun getCharSequence(context: Context, textStyle: TextStyle? = null): CharSequence? {
         return getString(context)?.let {
             (defaultTextStyle + textStyle)?.applyStyle(context, it) ?: it
         }
     }
 
+    @JvmOverloads
     open fun applyTo(textView: TextView, textStyle: TextStyle? = null) {
         textView.text = getCharSequence(textView.context, textStyle)
+    }
+
+    open operator fun plus(text: Text): Text {
+        return TextBuilder.BuilderText(this) + text
+    }
+
+    open operator fun plus(string: String): Text {
+        return TextBuilder.BuilderText(this) + string
+    }
+
+    operator fun plus(textStyle: TextStyle?): Text {
+        return textStyle?.let { from(this, textStyle = textStyle) } ?: this
     }
 
     override fun equals(other: Any?): Boolean {
@@ -106,6 +126,38 @@ open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
 
     }
 
+
+    private class CharSequenceText internal constructor(
+            private val charSequence: CharSequence,
+            textStyle: TextStyle?) : Text(textStyle) {
+
+        override fun isEmpty(): Boolean = charSequence.isEmpty()
+
+        override fun getString(context: Context): String? {
+            return charSequence.toString()
+        }
+
+        override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence? {
+            return (defaultTextStyle + textStyle)?.applyStyle(context, charSequence) ?: charSequence
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as CharSequenceText
+
+            return charSequence == other.charSequence
+        }
+
+        override fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + charSequence.hashCode()
+            return result
+        }
+
+    }
+
     private class ResourceText internal constructor(
             private val stringRes: Int,
             textStyle: TextStyle?
@@ -142,6 +194,16 @@ open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
         override fun isEmpty(): Boolean = stringRes <= 0
 
         override fun getString(context: Context): String {
+            if (formatArgs.firstOrNull { it is Text } != null) {
+                val list = formatArgs.map {
+                    when (it) {
+                        is Text -> it.getString(context)
+                        else -> it
+                    }
+                }
+                return context.getString(stringRes, *list.toTypedArray())
+            }
+
             return context.getString(stringRes, *formatArgs)
         }
 
@@ -165,7 +227,7 @@ open class Text(protected val defaultTextStyle: TextStyle? ) : Serializable {
     private class ArrayText internal constructor(
             private vararg val texts: Text,
             textStyle: TextStyle?
-    ): Text(textStyle) {
+    ) : Text(textStyle) {
 
         override fun isEmpty(): Boolean {
             if (texts.isEmpty()) return false
@@ -255,20 +317,18 @@ fun Context.toast(text: Text, duration: Int = Toast.LENGTH_SHORT, textStyle: Tex
     return Toast.makeText(this, text.getCharSequence(this, textStyle), duration).apply { show() }
 }
 
-operator fun Text.plus(text: Text) : Text {
-    if (this is TextBuilder.BuilderText) {
-        return this + text
-    }
-    return TextBuilder.BuilderText(this) + text
-}
-
-operator fun Text.plus(string: String) : Text {
-    if (this is TextBuilder.BuilderText) {
-        return this + string
-    }
-    return TextBuilder.BuilderText(this) + string
-}
-
 fun String.toText(textStyle: TextStyle? = null) = Text.from(this, textStyle)
 
-operator fun Text.plus(textStyle: TextStyle) = Text.from(this, textStyle = textStyle)
+fun CharSequence.toText(textStyle: TextStyle? = null) = Text.from(this, textStyle)
+
+operator fun Text?.plus(text: Text?): Text? {
+    return when {
+        this == null -> text
+        text == null -> this
+        else -> this + text
+    }
+}
+
+operator fun Text?.plus(textStyle: TextStyle?): Text? {
+    return this?.let { this + textStyle }
+}
