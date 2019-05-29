@@ -42,17 +42,20 @@ abstract class TextStyle : Serializable {
         fun strikethrough(): TextStyle = strikethroughTextStyle
 
         @JvmStatic
-        fun font(fontName: Text): TextStyle = FontTextStyle(fontName)
+        fun font(fontName: Text): TextStyle = FontTextStyle(fontNameText = fontName)
 
         @JvmStatic
-        fun font(fontName: String): TextStyle = FontTextStyle(fontName.toText())
+        fun font(fontName: String): TextStyle = FontTextStyle(fontNameText = fontName.toText())
+
+        @JvmStatic
+        fun font(typeface: Typeface): TextStyle = FontTextStyle(fontTypeface = typeface)
 
         @JvmStatic
         fun size(size: Size): TextStyle = SizeTextStyle(size)
 
     }
 
-    operator fun plus(textStyle: TextStyle?):TextStyle {
+    operator fun plus(textStyle: TextStyle?): TextStyle {
         val list = mutableListOf<TextStyle>().apply {
             addTextStyle(this@TextStyle)
             addTextStyle(textStyle)
@@ -115,12 +118,23 @@ abstract class TextStyle : Serializable {
         }
     }
 
-    private class FontTextStyle(private val fontNameText: Text) : TextStyle() {
+    private class FontTextStyle(
+            private val fontNameText: Text? = null,
+            private val fontTypeface: Typeface? = null
+    ) : TextStyle() {
 
         override fun SpannableString.applyStyle(context: Context) {
-           fontNameText.getString(context)?.let {
-               setSpan(TypefaceSpan(it),0, length, 0)
-           }
+            setSpan(createSpan(context), 0, length, 0)
+        }
+
+        private fun createSpan(context: Context): Any {
+            if (fontTypeface != null) {
+                return StyleSpan(fontTypeface.style)
+            }
+            fontNameText?.getString(context)?.let {
+                return TypefaceSpan(it)
+            }
+            throw IllegalStateException()
         }
 
     }
