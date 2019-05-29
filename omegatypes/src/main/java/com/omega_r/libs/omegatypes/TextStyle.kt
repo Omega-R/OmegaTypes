@@ -42,13 +42,13 @@ abstract class TextStyle : Serializable {
         fun strikethrough(): TextStyle = strikethroughTextStyle
 
         @JvmStatic
-        fun font(fontName: Text): TextStyle = FontTextStyle(fontNameText = fontName)
+        fun font(fontName: Text): TextStyle = NameFontTextStyle(fontNameText = fontName)
 
         @JvmStatic
-        fun font(fontName: String): TextStyle = FontTextStyle(fontNameText = fontName.toText())
+        fun font(fontName: String): TextStyle = NameFontTextStyle(fontNameText = fontName.toText())
 
         @JvmStatic
-        fun font(typeface: Typeface): TextStyle = FontTextStyle(fontTypeface = typeface)
+        fun font(typeface: Typeface): TextStyle = TypefaceFontTextStyle(fontTypeface = typeface)
 
         @JvmStatic
         fun size(size: Size): TextStyle = SizeTextStyle(size)
@@ -118,23 +118,20 @@ abstract class TextStyle : Serializable {
         }
     }
 
-    private class FontTextStyle(
-            private val fontNameText: Text? = null,
-            private val fontTypeface: Typeface? = null
-    ) : TextStyle() {
+    private class NameFontTextStyle(private val fontNameText: Text) : TextStyle() {
 
         override fun SpannableString.applyStyle(context: Context) {
-            setSpan(createSpan(context), 0, length, 0)
+            fontNameText.getString(context)?.let {
+                setSpan(TypefaceSpan(it), 0, length, 0)
+            }
         }
 
-        private fun createSpan(context: Context): Any {
-            if (fontTypeface != null) {
-                return StyleSpan(fontTypeface.style)
-            }
-            fontNameText?.getString(context)?.let {
-                return TypefaceSpan(it)
-            }
-            throw IllegalStateException()
+    }
+
+    private class TypefaceFontTextStyle(private val fontTypeface: Typeface) : TextStyle() {
+
+        override fun SpannableString.applyStyle(context: Context) {
+            setSpan(TypefaceSpanCompat(typeface = fontTypeface), 0, length, 0)
         }
 
     }
