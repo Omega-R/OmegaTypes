@@ -16,6 +16,7 @@ import java.io.*
 open class Image : Serializable {
 
     open fun preload(context: Context) {
+        // nothing
     }
 
     open fun applyImage(imageView: ImageView, placeholderResId: Int = 0) {
