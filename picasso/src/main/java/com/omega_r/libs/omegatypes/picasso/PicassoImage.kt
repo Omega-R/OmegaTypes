@@ -22,6 +22,12 @@ import java.io.InputStream
 
 class PicassoImage(override val url: String) : Image(), UrlImage {
 
+    override fun preload(context: Context) {
+        Picasso.get()
+                .load(url)
+                .fetch()
+    }
+
     override fun applyImage(imageView: ImageView, placeholderResId: Int) {
         Picasso.get()
                 .load(url)

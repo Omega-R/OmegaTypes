@@ -21,6 +21,12 @@ import java.io.InputStream
 
 class GlideImage(override val url: String) : Image(), UrlImage {
 
+    override fun preload(context: Context) {
+        Glide.with(context)
+                .load(url)
+                .preload()
+    }
+
     override fun applyImage(imageView: ImageView, placeholderResId: Int) {
         Glide.with(imageView)
                 .load(url)

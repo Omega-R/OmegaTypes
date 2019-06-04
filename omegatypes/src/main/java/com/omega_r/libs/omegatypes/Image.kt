@@ -15,6 +15,9 @@ import java.io.*
 
 open class Image : Serializable {
 
+    open fun preload(context: Context) {
+    }
+
     open fun applyImage(imageView: ImageView, placeholderResId: Int = 0) {
         if (placeholderResId == 0) {
             imageView.setImageDrawable(null)
