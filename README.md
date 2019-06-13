@@ -23,8 +23,8 @@ allprojects {
 **Step 2.** Add the dependency
 ```
 dependencies {
-    implementation 'com.github.Omega-R.OmegaTypes:omegatypes:0.2.0'
-    // implementation 'com.github.Omega-R.OmegaTypes:picasso:0.2.0' // for load url
+    implementation 'com.github.Omega-R.OmegaTypes:omegatypes:1.0.0'
+    // implementation 'com.github.Omega-R.OmegaTypes:picasso:1.0.0' // for load url
 }
 ```
 
