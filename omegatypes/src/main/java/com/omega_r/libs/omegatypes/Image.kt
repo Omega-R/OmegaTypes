@@ -15,10 +15,7 @@ import java.io.*
 
 open class Image : Serializable {
 
-    open fun preload(context: Context) {
-        // nothing
-    }
-
+    @JvmOverloads
     open fun applyImage(imageView: ImageView, placeholderResId: Int = 0) {
         if (placeholderResId == 0) {
             imageView.setImageDrawable(null)
@@ -27,6 +24,7 @@ open class Image : Serializable {
         }
     }
 
+    @JvmOverloads
     open fun applyBackground(view: View, placeholderResId: Int = 0) {
         if (placeholderResId == 0) {
             view.setBackgroundResource(placeholderResId)
@@ -36,12 +34,17 @@ open class Image : Serializable {
     }
 
 
+    @JvmOverloads
     @Throws(IOException::class)
     open fun getStream(context: Context,
                        compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG, quality: Int = 100): InputStream {
         return object : InputStream() {
             override fun read() = -1
         }
+    }
+
+    open fun preload(context: Context) {
+        // nothing
     }
 
     protected fun applyBackground(view: View, background: Drawable?) {

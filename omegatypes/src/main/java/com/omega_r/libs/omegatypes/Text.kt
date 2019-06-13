@@ -329,6 +329,14 @@ operator fun Text?.plus(text: Text?): Text? {
     }
 }
 
+operator fun Text?.plus(string: String?): Text? {
+    return when {
+        this == null -> string?.let { Text.from(string) }
+        string == null -> this
+        else -> this + string
+    }
+}
+
 operator fun Text?.plus(textStyle: TextStyle?): Text? {
     return this?.let { this + textStyle }
 }
