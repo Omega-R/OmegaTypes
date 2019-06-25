@@ -1,4 +1,4 @@
-package com.omega_r.libs.omegatypes
+package com.omega_r.libs.omegatypes.tools
 
 import android.graphics.Typeface
 import android.os.Parcel

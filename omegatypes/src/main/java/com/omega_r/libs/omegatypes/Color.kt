@@ -3,13 +3,17 @@ package com.omega_r.libs.omegatypes
 import android.content.Context
 import android.content.res.ColorStateList
 import android.os.Build
+import android.util.TypedValue
 import java.io.Serializable
+
 
 /**
  * Created by Anton Knyazev on 18.05.2019.
  */
 
-abstract class Color  : Serializable {
+private typealias GraphicColor = android.graphics.Color
+
+abstract class Color : Serializable {
 
     abstract fun getColorInt(context: Context): Int
 
@@ -19,11 +23,51 @@ abstract class Color  : Serializable {
 
     companion object {
 
+        val BLACK
+            get() = fromInt(GraphicColor.BLACK)
+
+        val WHITE
+            get() = fromInt(GraphicColor.WHITE)
+
+        val DKGRAY
+            get() = fromInt(GraphicColor.DKGRAY)
+
+        val GRAY
+            get() = fromInt(GraphicColor.GRAY)
+
+        val GREEN
+            get() = fromInt(GraphicColor.GREEN)
+
+        val BLUE
+            get() = fromInt(GraphicColor.BLUE)
+
+        val YELLOW
+            get() = fromInt(GraphicColor.YELLOW)
+
+        val CYAN
+            get() = fromInt(GraphicColor.CYAN)
+
+        val MAGENTA
+            get() = fromInt(GraphicColor.MAGENTA)
+
+        val TRANSPARENT
+            get() = fromInt(GraphicColor.TRANSPARENT)
+
         @JvmStatic
         fun fromInt(color: Int): Color = IntColor(color)
 
         @JvmStatic
         fun fromResource(colorRes: Int): Color = ResourceColor(colorRes)
+
+        @JvmStatic
+        fun fromAttribute(colorAttr: Int): Color = AttrThemeColor(colorAttr)
+
+        @JvmStatic
+        fun fromArgb(alpha: Int, red: Int, green: Int, blue: Int): Color = IntColor(GraphicColor.argb(alpha, red, green, blue))
+
+        @JvmStatic
+        fun fromString(colorString: String): Color = IntColor(GraphicColor.parseColor(colorString))
+
     }
 
     class IntColor(private val colorInt: Int) : Color() {
@@ -45,6 +89,15 @@ abstract class Color  : Serializable {
                 context.getColorStateList(colorRes)
             } else {
                 context.resources.getColorStateList(colorRes)
+            }
+        }
+    }
+
+    class AttrThemeColor(private val attrInt: Int) : Color() {
+
+        override fun getColorInt(context: Context): Int {
+            return TypedValue().run {
+                if (context.theme.resolveAttribute(attrInt, this, true)) data else 0
             }
         }
 

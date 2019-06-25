@@ -31,7 +31,9 @@ class GlideImage(override val url: String) : Image(), UrlImage {
         Glide.with(imageView)
                 .load(url)
                 .apply {
-                    if (placeholderResId != 0) placeholder(placeholderResId)
+                    val newPlaceholderResId = getDefaultPlaceholderResId(imageView.context, placeholderResId)
+
+                    if (newPlaceholderResId != 0) placeholder(newPlaceholderResId)
                     into(imageView)
                 }
     }
@@ -42,7 +44,9 @@ class GlideImage(override val url: String) : Image(), UrlImage {
         Glide.with(view)
                 .load(url)
                 .apply {
-                    if (placeholderResId != 0) placeholder(placeholderResId)
+                    val newPlaceholderResId = getDefaultPlaceholderResId(view.context, placeholderResId)
+
+                    if (newPlaceholderResId != 0) placeholder(newPlaceholderResId)
 
                     into(object : CustomViewTarget<View, Drawable>(view) {
                         override fun onLoadFailed(errorDrawable: Drawable?) {

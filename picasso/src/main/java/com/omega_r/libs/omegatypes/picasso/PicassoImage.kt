@@ -29,10 +29,11 @@ class PicassoImage(override val url: String) : Image(), UrlImage {
     }
 
     override fun applyImage(imageView: ImageView, placeholderResId: Int) {
+        val newPlaceholderResId = getDefaultPlaceholderResId(imageView.context, placeholderResId)
         Picasso.get()
                 .load(url)
                 .apply {
-                    if (placeholderResId != 0) placeholder(placeholderResId)
+                    if (newPlaceholderResId != 0) placeholder(newPlaceholderResId)
                     fit()
                     if (imageView.scaleType == ImageView.ScaleType.CENTER_INSIDE) {
                         centerInside()
@@ -44,12 +45,13 @@ class PicassoImage(override val url: String) : Image(), UrlImage {
     }
 
     override fun applyBackground(view: View, placeholderResId: Int) {
-        super.applyBackground(view, placeholderResId)
+        val newPlaceholderResId = getDefaultPlaceholderResId(view.context, placeholderResId)
+        super.applyBackground(view, newPlaceholderResId)
 
         val requestCreator = Picasso.get().load(url)
 
-        if (placeholderResId != 0) {
-            requestCreator.placeholder(placeholderResId)
+        if (newPlaceholderResId != 0) {
+            requestCreator.placeholder(newPlaceholderResId)
         }
 
         if (view.width > 0 && view.height > 0) {
