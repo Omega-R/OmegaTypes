@@ -28,6 +28,11 @@ class MainActivity : BaseActivity() {
                         textStyle = TextStyle.font(ResourcesCompat.getFont(this, R.font.noto_sans_semi_bold)!!)
                 )
         text.applyTo(exampleTextView) // or exampleTextView.setText(text)
+
+        val list = listOf(Text.from("1"), Text.from("2"), Text.from("3"))
+
+        title = list.join(",",  postfix = ".").getCharSequence(this)
+
         val image = Image.from("https://avatars1.githubusercontent.com/u/28600571")
 
         thread {

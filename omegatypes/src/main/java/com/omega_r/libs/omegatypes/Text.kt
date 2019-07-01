@@ -2,19 +2,15 @@ package com.omega_r.libs.omegatypes
 
 import android.app.Activity
 import android.content.Context
-import android.content.res.Resources
-import android.os.Build
-import android.text.SpannableString
 import android.text.SpannableStringBuilder
-import android.text.style.ForegroundColorSpan
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import java.io.Serializable
 import java.util.*
-import kotlin.text.StringBuilder
 
-open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
+open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Textable {
+
 
     companion object {
         @JvmStatic
@@ -76,12 +72,20 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
         return TextBuilder.BuilderText(this) + text
     }
 
+    open operator fun plus(text: Textable): Text {
+        return this + text.toText()
+    }
+
     open operator fun plus(string: String): Text {
         return TextBuilder.BuilderText(this) + string
     }
 
     operator fun plus(textStyle: TextStyle?): Text {
         return textStyle?.let { from(this, textStyle = textStyle) } ?: this
+    }
+
+    override fun toText(): Text {
+        return this
     }
 
     override fun equals(other: Any?): Boolean {
@@ -283,7 +287,15 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
 
     }
 
+
 }
+
+interface Textable {
+
+    fun toText(): Text
+
+}
+
 
 fun TextView.setText(text: Text?, textStyle: TextStyle? = null) {
     if (text == null) {
@@ -339,4 +351,25 @@ operator fun Text?.plus(string: String?): Text? {
 
 operator fun Text?.plus(textStyle: TextStyle?): Text? {
     return this?.let { this + textStyle }
+}
+
+fun List<Textable>.join(separator: String = ", ", prefix: String = "", postfix: String = "", limit: Int = -1, truncated: String = "..."): Text {
+    var buffer = if (prefix.isNotEmpty()) Text.from(prefix) else Text.from()
+
+    var count = 0
+
+    for (element in this) {
+        if (++count > 1) buffer += separator
+        if (limit < 0 || count <= limit) {
+            buffer += element
+        } else break
+    }
+
+    if (limit in 0 until count) buffer += truncated
+
+    if (postfix.isNotEmpty()) {
+        buffer += postfix
+    }
+
+    return buffer
 }
