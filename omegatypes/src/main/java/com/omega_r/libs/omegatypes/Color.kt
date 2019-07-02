@@ -29,6 +29,9 @@ abstract class Color : Serializable {
         val WHITE
             get() = fromInt(GraphicColor.WHITE)
 
+        val RED
+            get() = fromInt(GraphicColor.RED)
+
         val DKGRAY
             get() = fromInt(GraphicColor.DKGRAY)
 
