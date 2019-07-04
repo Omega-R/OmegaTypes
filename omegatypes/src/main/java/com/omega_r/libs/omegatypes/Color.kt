@@ -6,6 +6,7 @@ import android.content.res.Resources
 import android.os.Build
 import android.util.SparseIntArray
 import android.util.TypedValue
+import android.widget.TextView
 import java.io.Serializable
 import java.util.*
 
@@ -74,6 +75,9 @@ abstract class Color : Serializable {
         @JvmStatic
         fun fromString(colorString: String): Color = IntColor(GraphicColor.parseColor(colorString))
 
+        @JvmStatic
+        fun fromColorList(colorStateList: ColorStateList): Color = ColorStateListColor(colorStateList)
+
     }
 
     class IntColor(private val colorInt: Int) : Color() {
@@ -137,4 +141,28 @@ abstract class Color : Serializable {
 
     }
 
+    class ColorStateListColor(private val colorStateList: ColorStateList) : Color() {
+
+        override fun getColorInt(context: Context): Int {
+            return colorStateList.defaultColor
+        }
+
+        override fun getColorStateList(context: Context): ColorStateList {
+            return colorStateList
+        }
+
+    }
+
 }
+
+var TextView.textColor: Color
+    get() = Color.fromColorList(textColors)
+    set(value) {
+        setTextColor(value.getColorStateList(context))
+    }
+
+var TextView.hintTextColor: Color
+    get() = Color.fromColorList(hintTextColors)
+    set(value) {
+        setHintTextColor(value.getColorStateList(context))
+    }
