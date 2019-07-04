@@ -29,7 +29,7 @@ class MainActivity : BaseActivity() {
                 )
         text.applyTo(exampleTextView) // or exampleTextView.setText(text)
 
-        val list = listOf(Text.from("1"), Text.from("2"), Text.from("3"))
+        val list = listOf(Text.from("1", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))), Text.from("2", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))), Text.from("3"))
 
         title = list.join(",",  postfix = ".").getCharSequence(this)
 

@@ -2,9 +2,12 @@ package com.omega_r.libs.omegatypes
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.content.res.Resources
 import android.os.Build
+import android.util.SparseIntArray
 import android.util.TypedValue
 import java.io.Serializable
+import java.util.*
 
 
 /**
@@ -98,9 +101,37 @@ abstract class Color : Serializable {
 
     class AttrThemeColor(private val attrInt: Int) : Color() {
 
-        override fun getColorInt(context: Context): Int {
+        companion object {
+
+            private val cache = WeakHashMap<Resources.Theme, SparseIntArray>()
+
+        }
+
+        private fun extractColor(theme: Resources.Theme): Int {
             return TypedValue().run {
-                if (context.theme.resolveAttribute(attrInt, this, true)) data else 0
+                if (theme.resolveAttribute(attrInt, this, true)) data else 0
+            }
+        }
+
+        override fun getColorInt(context: Context): Int {
+
+            val theme = context.theme
+
+            val sparseIntArray = cache[theme]
+
+            return sparseIntArray?.indexOfKey(attrInt)?.run {
+                if (this >= 0) {
+                    sparseIntArray.valueAt(this)
+                } else {
+                    extractColor(theme).apply {
+                        sparseIntArray.put(attrInt, this)
+                    }
+                }
+            } ?: SparseIntArray().run {
+                cache[theme] = this
+                extractColor(theme).apply {
+                    put(attrInt, this)
+                }
             }
         }
 
