@@ -232,7 +232,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
     }
 
-    class PluralsText(
+    class PluralsText internal constructor(
             private val res: Int,
             private val quantity: Int,
             private vararg val formatArgs: Any,
