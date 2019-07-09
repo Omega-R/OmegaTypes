@@ -35,6 +35,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         @JvmStatic
         @JvmOverloads
+        fun from(stringRes: Int, quantity: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text = PluralsText(stringRes, quantity, *formatArgs, textStyle = textStyle)
+
+        @JvmStatic
+        @JvmOverloads
         fun from(stringHolder: StringHolder, textStyle: TextStyle? = null): Text = stringHolder.getStringText()?.let { from(it, textStyle) }
                 ?: empty()
 
@@ -225,6 +229,44 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             result = 31 * result + Arrays.hashCode(formatArgs)
             return result
         }
+
+    }
+
+    class PluralsText internal constructor(
+            private val res: Int,
+            private val quantity: Int,
+            private vararg val formatArgs: Any,
+            textStyle: TextStyle? = null
+    ) : Text(textStyle) {
+
+        override fun isEmpty(): Boolean = res <= 0
+
+        override fun getString(context: Context): String? {
+            return context.resources.getQuantityString(res, quantity, *formatArgs)
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+            if (!super.equals(other)) return false
+
+            other as PluralsText
+
+            if (res != other.res) return false
+            if (quantity != other.quantity) return false
+            if (!formatArgs.contentEquals(other.formatArgs)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + res
+            result = 31 * result + quantity
+            result = 31 * result + formatArgs.contentHashCode()
+            return result
+        }
+
 
     }
 
