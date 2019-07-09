@@ -35,6 +35,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         @JvmStatic
         @JvmOverloads
+        fun from(stringRes: Int, quantity: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text = PluralsText(stringRes, quantity, *formatArgs, textStyle = textStyle)
+
+        @JvmStatic
+        @JvmOverloads
         fun from(stringHolder: StringHolder, textStyle: TextStyle? = null): Text = stringHolder.getStringText()?.let { from(it, textStyle) }
                 ?: empty()
 
@@ -224,6 +228,21 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             var result = super.hashCode() + stringRes
             result = 31 * result + Arrays.hashCode(formatArgs)
             return result
+        }
+
+    }
+
+    class PluralsText(
+            private val res: Int,
+            private val quantity: Int,
+            private vararg val formatArgs: Any,
+            textStyle: TextStyle? = null
+    ) : Text(textStyle) {
+
+        override fun isEmpty(): Boolean = res <= 0
+
+        override fun getString(context: Context): String? {
+            return context.resources.getQuantityString(res, quantity, *formatArgs)
         }
 
     }
