@@ -245,6 +245,29 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             return context.resources.getQuantityString(res, quantity, *formatArgs)
         }
 
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+            if (!super.equals(other)) return false
+
+            other as PluralsText
+
+            if (res != other.res) return false
+            if (quantity != other.quantity) return false
+            if (!formatArgs.contentEquals(other.formatArgs)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + res
+            result = 31 * result + quantity
+            result = 31 * result + formatArgs.contentHashCode()
+            return result
+        }
+
+
     }
 
     private class ArrayText internal constructor(
