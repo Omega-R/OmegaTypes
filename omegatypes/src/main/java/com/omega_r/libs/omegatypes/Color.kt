@@ -111,12 +111,6 @@ abstract class Color : Serializable {
 
         }
 
-        private fun extractColor(theme: Resources.Theme): Int {
-            return TypedValue().run {
-                if (theme.resolveAttribute(attrInt, this, true)) data else 0
-            }
-        }
-
         override fun getColorInt(context: Context): Int {
 
             val theme = context.theme
@@ -127,15 +121,23 @@ abstract class Color : Serializable {
                 if (this >= 0) {
                     sparseIntArray.valueAt(this)
                 } else {
-                    extractColor(theme).apply {
-                        sparseIntArray.put(attrInt, this)
-                    }
+                    sparseIntArray.extractAndPutCache(theme)
                 }
             } ?: SparseIntArray().run {
                 cache[theme] = this
-                extractColor(theme).apply {
-                    put(attrInt, this)
-                }
+                extractAndPutCache(theme)
+            }
+        }
+
+        private fun SparseIntArray.extractAndPutCache(theme: Resources.Theme): Int {
+            return extractColor(theme).apply {
+                put(attrInt, this)
+            }
+        }
+
+        private fun extractColor(theme: Resources.Theme): Int {
+            return TypedValue().run {
+                if (theme.resolveAttribute(attrInt, this, true)) data else 0
             }
         }
 
@@ -165,4 +167,10 @@ var TextView.hintTextColor: Color
     get() = Color.fromColorList(hintTextColors)
     set(value) {
         setHintTextColor(value.getColorStateList(context))
+    }
+
+var TextView.linkTextColor: Color
+    get() = Color.fromColorList(linkTextColors)
+    set(value) {
+        setLinkTextColor(value.getColorStateList(context))
     }

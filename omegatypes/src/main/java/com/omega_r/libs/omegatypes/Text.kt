@@ -35,7 +35,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         @JvmStatic
         @JvmOverloads
-        fun from(stringRes: Int, quantity: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text = PluralsText(stringRes, quantity, *formatArgs, textStyle = textStyle)
+        fun fromPlurals(stringRes: Int, quantity: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text = PluralsText(stringRes, quantity, *formatArgs, textStyle = textStyle)
 
         @JvmStatic
         @JvmOverloads
