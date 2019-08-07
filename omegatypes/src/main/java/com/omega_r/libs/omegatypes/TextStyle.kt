@@ -15,6 +15,8 @@ abstract class TextStyle : Serializable {
 
     companion object {
 
+        private val normalTextStyle = FontStyleTextStyle(Typeface.NORMAL)
+
         private val boldTextStyle = FontStyleTextStyle(Typeface.BOLD)
 
         private val italicTextStyle = FontStyleTextStyle(Typeface.ITALIC)
@@ -27,7 +29,13 @@ abstract class TextStyle : Serializable {
         fun color(color: Color): TextStyle = ColorTextStyle(color)
 
         @JvmStatic
-        fun color(colorInt: Int): TextStyle = ColorTextStyle(Color.fromInt(colorInt))
+        fun colorFromInt(colorInt: Int): TextStyle = ColorTextStyle(Color.fromInt(colorInt))
+
+        @JvmStatic
+        fun colorFromResource(colorRes: Int): TextStyle = ColorTextStyle(Color.fromResource(colorRes))
+
+        @JvmStatic
+        fun normal(): TextStyle = normalTextStyle
 
         @JvmStatic
         fun bold(): TextStyle = boldTextStyle

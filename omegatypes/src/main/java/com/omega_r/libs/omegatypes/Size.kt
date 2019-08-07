@@ -1,9 +1,15 @@
 package com.omega_r.libs.omegatypes
 
 import android.content.Context
+import android.content.res.Resources
 import android.util.DisplayMetrics
+import android.util.SparseArray
+import android.util.SparseIntArray
+import android.util.TypedValue
 import android.util.TypedValue.*
+import android.widget.TextView
 import java.io.Serializable
+import java.util.*
 
 /**
  * Created by Anton Knyazev on 18.05.2019.
@@ -17,6 +23,9 @@ abstract class Size : Serializable {
 
         @JvmStatic
         fun from(dimensionRes: Int): Size = DimensionResourceSize(dimensionRes)
+
+        @JvmStatic
+        fun fromAttribute(dimensionAttr: Int): Size = AttrThemeSize(dimensionAttr)
 
     }
 
@@ -102,11 +111,58 @@ abstract class Size : Serializable {
     private class DimensionResourceSize(private val sizeRes: Int) : Size() {
 
         override fun getSize(context: Context, unit: Unit) = context.resources.run {
-            getDimension(sizeRes).applyFactor(context, Unit.PX, unit)
+            getRawSize(context).applyFactor(context, Unit.PX, unit)
         }
 
         override fun getRawSize(context: Context) = context.resources.getDimension(sizeRes)
 
     }
+
+    class AttrThemeSize(private val attrInt: Int) : Size() {
+
+        companion object {
+
+            private val cache = WeakHashMap<Resources.Theme, SparseArray<Float>>()
+
+        }
+
+        override fun getSize(context: Context, unit: Unit): Float = context.resources.run {
+            getRawSize(context).applyFactor(context, Unit.PX, unit)
+        }
+
+        override fun getRawSize(context: Context): Float {
+            val theme = context.theme
+            val metrics = context.resources.displayMetrics
+            val sparseIntArray = cache[theme]
+
+            return (sparseIntArray?.indexOfKey(attrInt)?.run {
+                if (this >= 0) {
+                    sparseIntArray.valueAt(this)
+                } else {
+                    sparseIntArray.extractAndPutCache(metrics, theme)
+                }
+            } ?: SparseArray<Float>().run {
+                cache[theme] = this
+                extractAndPutCache(metrics, theme)
+            })
+        }
+
+        private fun SparseArray<Float>.extractAndPutCache(metrics: DisplayMetrics, theme: Resources.Theme): Float {
+            return extractSize(metrics, theme).apply {
+                put(attrInt, this)
+            }
+        }
+
+        private fun extractSize(metrics: DisplayMetrics, theme: Resources.Theme): Float {
+            return TypedValue().run {
+                if (theme.resolveAttribute(attrInt, this, true)) getDimension(metrics) else 0f
+            }
+        }
+
+    }
+
 }
 
+fun TextView.setTextSize(size: Size) {
+    setTextSize(COMPLEX_UNIT_PX, size.getSize(context, Size.Unit.PX))
+}

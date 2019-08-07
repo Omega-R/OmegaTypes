@@ -2,19 +2,15 @@ package com.omega_r.libs.omegatypes
 
 import android.app.Activity
 import android.content.Context
-import android.content.res.Resources
-import android.os.Build
-import android.text.SpannableString
 import android.text.SpannableStringBuilder
-import android.text.style.ForegroundColorSpan
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import java.io.Serializable
 import java.util.*
-import kotlin.text.StringBuilder
 
-open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
+open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Textable {
+
 
     companion object {
         @JvmStatic
@@ -36,6 +32,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
         @JvmStatic
         @JvmOverloads
         fun from(stringRes: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text = FormatResourceText(stringRes, *formatArgs, textStyle = textStyle)
+
+        @JvmStatic
+        @JvmOverloads
+        fun fromPlurals(stringRes: Int, quantity: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text = PluralsText(stringRes, quantity, *formatArgs, textStyle = textStyle)
 
         @JvmStatic
         @JvmOverloads
@@ -76,12 +76,20 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
         return TextBuilder.BuilderText(this) + text
     }
 
+    open operator fun plus(text: Textable): Text {
+        return this + text.toText()
+    }
+
     open operator fun plus(string: String): Text {
         return TextBuilder.BuilderText(this) + string
     }
 
     operator fun plus(textStyle: TextStyle?): Text {
         return textStyle?.let { from(this, textStyle = textStyle) } ?: this
+    }
+
+    override fun toText(): Text {
+        return this
     }
 
     override fun equals(other: Any?): Boolean {
@@ -224,6 +232,44 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
 
     }
 
+    class PluralsText internal constructor(
+            private val res: Int,
+            private val quantity: Int,
+            private vararg val formatArgs: Any,
+            textStyle: TextStyle? = null
+    ) : Text(textStyle) {
+
+        override fun isEmpty(): Boolean = res <= 0
+
+        override fun getString(context: Context): String? {
+            return context.resources.getQuantityString(res, quantity, *formatArgs)
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+            if (!super.equals(other)) return false
+
+            other as PluralsText
+
+            if (res != other.res) return false
+            if (quantity != other.quantity) return false
+            if (!formatArgs.contentEquals(other.formatArgs)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + res
+            result = 31 * result + quantity
+            result = 31 * result + formatArgs.contentHashCode()
+            return result
+        }
+
+
+    }
+
     private class ArrayText internal constructor(
             private vararg val texts: Text,
             textStyle: TextStyle?
@@ -283,7 +329,15 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable {
 
     }
 
+
 }
+
+interface Textable {
+
+    fun toText(): Text
+
+}
+
 
 fun TextView.setText(text: Text?, textStyle: TextStyle? = null) {
     if (text == null) {
@@ -329,6 +383,35 @@ operator fun Text?.plus(text: Text?): Text? {
     }
 }
 
+operator fun Text?.plus(string: String?): Text? {
+    return when {
+        this == null -> string?.let { Text.from(string) }
+        string == null -> this
+        else -> this + string
+    }
+}
+
 operator fun Text?.plus(textStyle: TextStyle?): Text? {
     return this?.let { this + textStyle }
+}
+
+fun List<Textable>.join(separator: String = ", ", prefix: String = "", postfix: String = "", limit: Int = -1, truncated: String = "..."): Text {
+    var buffer = if (prefix.isNotEmpty()) Text.from(prefix) else Text.from()
+
+    var count = 0
+
+    for (element in this) {
+        if (++count > 1) buffer += separator
+        if (limit < 0 || count <= limit) {
+            buffer += element
+        } else break
+    }
+
+    if (limit in 0 until count) buffer += truncated
+
+    if (postfix.isNotEmpty()) {
+        buffer += postfix
+    }
+
+    return buffer
 }

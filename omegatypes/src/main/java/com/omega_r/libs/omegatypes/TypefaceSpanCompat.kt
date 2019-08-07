@@ -7,6 +7,7 @@ import android.text.ParcelableSpan
 import android.text.TextPaint
 import android.text.style.MetricAffectingSpan
 import android.text.style.TypefaceSpan
+import com.omega_r.libs.omegatypes.tools.LeakyTypefaceStorageCompat
 
 class TypefaceSpanCompat(
         var family: String? = null,

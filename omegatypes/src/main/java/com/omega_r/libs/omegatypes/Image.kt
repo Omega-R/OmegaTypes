@@ -8,6 +8,7 @@ import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.Base64
+import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
 import com.omega_r.libs.omegatypes.Image.Companion.applyBackground
@@ -15,23 +16,30 @@ import java.io.*
 
 open class Image : Serializable {
 
+    @JvmOverloads
     open fun applyImage(imageView: ImageView, placeholderResId: Int = 0) {
-        if (placeholderResId == 0) {
+        val newPlaceholderResId = getDefaultPlaceholderResId(imageView.context, placeholderResId)
+
+        if (newPlaceholderResId == 0) {
             imageView.setImageDrawable(null)
         } else {
-            imageView.setImageResource(placeholderResId)
+            imageView.setImageResource(newPlaceholderResId)
         }
     }
 
+    @JvmOverloads
     open fun applyBackground(view: View, placeholderResId: Int = 0) {
-        if (placeholderResId == 0) {
-            view.setBackgroundResource(placeholderResId)
+        val newPlaceholderResId = getDefaultPlaceholderResId(view.context, placeholderResId)
+
+        if (newPlaceholderResId != 0) {
+            view.setBackgroundResource(newPlaceholderResId)
         } else {
             applyBackground(view, null)
         }
     }
 
 
+    @JvmOverloads
     @Throws(IOException::class)
     open fun getStream(context: Context,
                        compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG, quality: Int = 100): InputStream {
@@ -40,8 +48,22 @@ open class Image : Serializable {
         }
     }
 
+    open fun preload(context: Context) {
+        // nothing
+    }
+
     protected fun applyBackground(view: View, background: Drawable?) {
         Image.applyBackground(view, background)
+    }
+
+    protected fun getDefaultPlaceholderResId(context: Context, placeholderResId: Int): Int {
+        return if (placeholderResId != 0) {
+            placeholderResId
+        } else {
+            TypedValue().run {
+                if (context.theme.resolveAttribute(R.attr.omegaTypePlaceholderDefault, this, true)) data else 0
+            }
+        }
     }
 
     companion object {
