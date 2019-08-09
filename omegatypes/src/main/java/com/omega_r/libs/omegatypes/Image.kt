@@ -4,9 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.util.Base64
 import android.util.TypedValue
 import android.view.View
@@ -119,10 +119,16 @@ class ResourceImage(private val resId: Int) : Image() {
     }
 
     override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
-        return BitmapFactory.decodeResource(context.resources, resId)
-                .toInputStream(compressFormat, quality)
-    }
+          val drawable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            context.getDrawable(resId)!!
+        } else {
+            context.resources.getDrawable(resId)!!
+        }
 
+        return drawable.toBitmap {
+            toInputStream(compressFormat, quality)
+        }
+    }
 }
 
 class DrawableImage(private val drawable: Drawable) : Image() {
@@ -136,7 +142,9 @@ class DrawableImage(private val drawable: Drawable) : Image() {
     }
 
     override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
-        return drawable.toBitmap().toInputStream(compressFormat, quality)
+        return drawable.toBitmap {
+            toInputStream(compressFormat, quality)
+        }
     }
 
 }
@@ -163,30 +171,28 @@ fun Bitmap.toInputStream(compressFormat: Bitmap.CompressFormat, quality: Int): I
     return ByteArrayInputStream(byteArray)
 }
 
-fun Drawable.toBitmap(
-        width: Int = intrinsicWidth,
-        height: Int = intrinsicHeight,
-        config: Bitmap.Config? = null
-): Bitmap {
+private inline fun <R> Drawable.toBitmap(converter: Bitmap.() -> R): R {
     if (this is BitmapDrawable) {
-        if (config == null || bitmap.config == config) {
-            // Fast-path to return original. Bitmap.createScaledBitmap will do this check, but it
-            // involves allocation and two jumps into native code so we perform the check ourselves.
-            if (width == intrinsicWidth && height == intrinsicHeight) {
-                return bitmap
-            }
-            return Bitmap.createScaledBitmap(bitmap, width, height, true)
-        }
+        return converter(bitmap)
     }
 
-    val newRect = Rect(bounds)
+    val newBitmap = if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
+        Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888)!!
+    } else {
+        Bitmap.createBitmap(intrinsicWidth, intrinsicHeight, Bitmap.Config.ARGB_8888)!!
+    }
 
-    val bitmap = Bitmap.createBitmap(width, height, config ?: Bitmap.Config.ARGB_8888)
-    setBounds(0, 0, width, height)
-    draw(Canvas(bitmap))
+    try {
+        val oldBounds = copyBounds()
+        setBounds(0, 0, newBitmap.width, newBitmap.height)
 
-    setBounds(newRect.left, newRect.top, newRect.right, newRect.bottom)
-    return bitmap
+        draw(Canvas(newBitmap))
+
+        bounds = oldBounds
+        return converter(newBitmap)
+    } finally {
+        newBitmap.recycle()
+    }
 }
 
 @JvmOverloads
