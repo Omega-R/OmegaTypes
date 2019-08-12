@@ -11,6 +11,7 @@ import android.util.Base64
 import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
+import android.widget.TextView
 import com.omega_r.libs.omegatypes.Image.Companion.applyBackground
 import java.io.*
 
@@ -47,6 +48,8 @@ open class Image : Serializable {
             override fun read() = -1
         }
     }
+
+    open fun getDrawable(context: Context): Drawable? = null
 
     open fun preload(context: Context) {
         // nothing
@@ -119,33 +122,37 @@ class ResourceImage(private val resId: Int) : Image() {
     }
 
     override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
-          val drawable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        return getDrawable(context).toBitmap {
+            toInputStream(compressFormat, quality)
+        }
+    }
+
+    override fun getDrawable(context: Context): Drawable {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             context.getDrawable(resId)!!
         } else {
             context.resources.getDrawable(resId)!!
         }
-
-        return drawable.toBitmap {
-            toInputStream(compressFormat, quality)
-        }
     }
 }
 
-class DrawableImage(private val drawable: Drawable) : Image() {
+class DrawableImage(private val innerDrawable: Drawable) : Image() {
 
     override fun applyImage(imageView: ImageView, placeholderResId: Int) {
-        imageView.setImageDrawable(drawable)
+        imageView.setImageDrawable(innerDrawable)
     }
 
     override fun applyBackground(view: View, placeholderResId: Int) {
-        applyBackground(view, drawable)
+        applyBackground(view, innerDrawable)
     }
 
     override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
-        return drawable.toBitmap {
+        return innerDrawable.toBitmap {
             toInputStream(compressFormat, quality)
         }
     }
+
+    override fun getDrawable(context: Context) = innerDrawable
 
 }
 
@@ -162,6 +169,8 @@ class BitmapImage(private val bitmap: Bitmap) : Image() {
     override fun getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
         return bitmap.toInputStream(compressFormat, quality)
     }
+
+    override fun getDrawable(context: Context) = BitmapDrawable(context.resources, bitmap)
 }
 
 fun Bitmap.toInputStream(compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
@@ -221,3 +230,35 @@ fun View.setBackground(image: Image?, placeholderResId: Int = 0) {
     }
 }
 
+private fun TextView.getImage(index: Int): Image? {
+    val drawables = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) compoundDrawablesRelative else compoundDrawables
+    return drawables[index]?.let { Image.from(it) }
+}
+
+private fun TextView.setImage(index: Int, image: Image?) {
+    val drawables = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) compoundDrawablesRelative else compoundDrawables
+
+    drawables[index] = image?.getDrawable(context)
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        setCompoundDrawablesRelativeWithIntrinsicBounds(drawables[0], drawables[1], drawables[2], drawables[3])
+    } else {
+        setCompoundDrawablesWithIntrinsicBounds(drawables[0], drawables[1], drawables[2], drawables[3])
+    }
+}
+
+var TextView.imageStart: Image?
+    get() = getImage(0)
+    set(value) = setImage(0, value)
+
+var TextView.imageEnd: Image?
+    get() = getImage(2)
+    set(value) = setImage(2, value)
+
+var TextView.imageTop: Image?
+    get() = getImage(1)
+    set(value) = setImage(1, value)
+
+var TextView.imageBottom: Image?
+    get() = getImage(3)
+    set(value) = setImage(3, value)
