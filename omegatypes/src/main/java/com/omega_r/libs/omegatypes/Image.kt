@@ -134,6 +134,22 @@ class ResourceImage(private val resId: Int) : Image() {
             context.resources.getDrawable(resId)!!
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ResourceImage
+
+        if (resId != other.resId) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return resId
+    }
+
 }
 
 class DrawableImage(private val innerDrawable: Drawable) : Image() {
@@ -154,6 +170,21 @@ class DrawableImage(private val innerDrawable: Drawable) : Image() {
 
     override fun getDrawable(context: Context) = innerDrawable
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DrawableImage
+
+        if (innerDrawable != other.innerDrawable) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return innerDrawable.hashCode()
+    }
+
 }
 
 class BitmapImage(private val bitmap: Bitmap) : Image() {
@@ -171,6 +202,22 @@ class BitmapImage(private val bitmap: Bitmap) : Image() {
     }
 
     override fun getDrawable(context: Context) = BitmapDrawable(context.resources, bitmap)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as BitmapImage
+
+        if (bitmap != other.bitmap) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return bitmap.hashCode()
+    }
+
 }
 
 fun Bitmap.toInputStream(compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
