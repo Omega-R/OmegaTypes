@@ -37,7 +37,9 @@ class PicassoImage(override val url: String) : Image(), UrlImage {
                     fit()
                     when (imageView.scaleType) {
                         ImageView.ScaleType.CENTER_INSIDE -> centerInside()
-                        ImageView.ScaleType.CENTER_CROP -> centerCrop()
+                        ImageView.ScaleType.CENTER_CROP,
+                        ImageView.ScaleType.FIT_CENTER -> centerCrop()
+
                         else -> {/* nothing */}
                     }
                     into(imageView)
