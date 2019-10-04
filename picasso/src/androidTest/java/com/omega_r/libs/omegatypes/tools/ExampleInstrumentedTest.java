@@ -1,4 +1,4 @@
-package com.omega_r.libs.omegatypes.picasso;
+package com.omega_r.libs.omegatypes.tools;
 
 import android.content.Context;
 import androidx.test.InstrumentationRegistry;

@@ -1,21 +1,33 @@
 package omega_r.com.omegatypesexample
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
-import com.omega_r.libs.omegatypes.*
-import kotlin.concurrent.thread
+import com.omega_r.libs.omegatypes.Color
+import com.omega_r.libs.omegatypes.Text
+import com.omega_r.libs.omegatypes.TextStyle
+import com.omega_r.libs.omegatypes.image.*
+import com.omega_r.libs.omegatypes.join
+
 
 class MainActivity : BaseActivity() {
+
+    companion object {
+
+        init {
+            GlideImagesProcessor.setAsCurrentImagesProcessor()
+        }
+
+    }
 
     private val exampleTextView by bind<TextView>(R.id.textview)
     private val imageView by bind<ImageView>(R.id.imageview)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_main)
         val text = Text.from("test ") +
                 Text.from(
@@ -31,18 +43,21 @@ class MainActivity : BaseActivity() {
 
         val list = listOf(Text.from("1", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))), Text.from("2", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))), Text.from("3"))
 
-        title = list.join(",",  postfix = ".").getCharSequence(this)
+        title = list.join(",", postfix = ".").getCharSequence(this)
 
-        val image = Image.from("https://avatars1.githubusercontent.com/u/28600571")
+        val image = Image.from("https://dejagerart.com/wp-content/uploads/2018/09/Test-Logo-Circle-black-transparent.png")
 
-        thread {
-            val stream = image.getStream(this, Bitmap.CompressFormat.PNG)
-            val bitmap = BitmapFactory.decodeStream(stream)
-            runOnUiThread {
-                imageView.setImageBitmap(bitmap)
-            }
 
-        }
+        imageView.setImage(image)
+
+//        thread {
+//            val stream = image.getStream(this, Bitmap.CompressFormat.PNG)
+//            val bitmap = BitmapFactory.decodeStream(stream)
+//            runOnUiThread {
+//                imageView.setImageBitmap(bitmap)
+//            }
+//
+//        }
 
     }
 
