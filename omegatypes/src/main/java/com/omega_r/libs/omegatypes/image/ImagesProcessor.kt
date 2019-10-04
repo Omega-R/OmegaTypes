@@ -14,7 +14,7 @@ abstract class ImagesProcessor {
 
     companion object {
 
-        internal val default = Default()
+        val default = Default()
 
         var current: ImagesProcessor = default
 

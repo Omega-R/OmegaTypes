@@ -10,11 +10,13 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/glide" />
+            <option value="$PROJECT_DIR$/googledrive" />
             <option value="$PROJECT_DIR$/omegatypes" />
             <option value="$PROJECT_DIR$/picasso" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
+        <option name="testRunner" value="PLATFORM" />
       </GradleProjectSettings>
     </option>
   </component>
