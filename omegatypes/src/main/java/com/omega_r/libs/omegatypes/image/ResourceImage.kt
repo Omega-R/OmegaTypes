@@ -16,7 +16,7 @@ data class ResourceImage(val resId: Int) : Image() {
     companion object {
 
         init {
-            ImagesProcessor.default.addImageProcessor(ResourceImage::class, Processor())
+            ImageProcessors.default.addImageProcessor(ResourceImage::class, Processor())
         }
 
     }
@@ -40,8 +40,8 @@ data class ResourceImage(val resId: Int) : Image() {
             view.setBackgroundResource(resId)
         }
 
-        override fun ResourceImage.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
-            return getDrawable(context)!!.toBitmap {
+        override suspend fun ResourceImage.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
+            return getDrawable(context)!!.toBitmapAndRecycle {
                 toInputStream(compressFormat, quality)
             }
         }

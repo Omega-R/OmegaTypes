@@ -13,14 +13,14 @@ data class Base64Image(val base64String: String, val flags: Int) : BaseBitmapIma
     companion object {
 
         init {
-            ImagesProcessor.default.addImageProcessor(Base64Image::class, Processor())
+            ImageProcessors.default.addImageProcessor(Base64Image::class, Processor())
         }
 
     }
 
     class Processor : BaseBitmapImage.Processor<Base64Image>(true) {
 
-        override fun getBitmap(context: Context, image: Base64Image, options: BitmapFactory.Options?): Bitmap? {
+        override suspend fun getBitmap(context: Context, image: Base64Image, options: BitmapFactory.Options?): Bitmap? {
             val base64String = image.base64String
             val position = base64String.indexOf(",")
             val data = if (position != -1) base64String.substring(position + 1) else base64String

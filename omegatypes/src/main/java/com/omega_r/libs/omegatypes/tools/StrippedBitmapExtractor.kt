@@ -12,12 +12,12 @@ import kotlin.math.max
  * Created by Anton Knyazev on 2019-10-02.
  */
 
-inline fun stripeBitmapExtractor(
+suspend fun stripeBitmapExtractor(
         dstWidth: Int,
         dstHeight: Int,
         imageScaleType: ImageView.ScaleType?,
         autoRecycle: Boolean,
-        simpleExtractor: (BitmapFactory.Options?) -> Bitmap?): Bitmap? {
+        simpleExtractor:  suspend (BitmapFactory.Options?) -> Bitmap?): Bitmap? {
 
     var options = BitmapFactory.Options()
     options.inJustDecodeBounds = true;

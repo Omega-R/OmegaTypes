@@ -1,5 +1,6 @@
 package com.omega_r.libs.omegatypes.file
 
+import android.content.Context
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.Serializable
@@ -10,7 +11,7 @@ import java.io.Serializable
 interface File : Serializable {
 
     companion object {
-
+        // for add extensions
     }
 
     val name: String
@@ -49,17 +50,17 @@ interface File : Serializable {
             }
         }
 
-        suspend fun getMode(file: F): List<Mode>
+        suspend fun getMode(context: Context, file: F): List<Mode>
 
-        suspend fun createInputStream(file: F): InputStream?
+        suspend fun createInputStream(context: Context, file: F): InputStream?
 
-        suspend fun createOutputStream(file: F, append: Boolean = false): OutputStream?
+        suspend fun createOutputStream(context: Context, file: F, append: Boolean = false): OutputStream?
 
-        suspend fun isExists(file: F): Boolean
+        suspend fun isExists(context: Context, file: F): Boolean
 
-        suspend fun getFiles(file: F): List<F>?
+        suspend fun getFiles(context: Context, file: F): List<F>?
 
-        suspend fun getRootFiles(): List<F>?
+        suspend fun getRootFiles(context: Context): List<F>?
 
     }
 

@@ -18,7 +18,7 @@ data class UrlImage(val url: String) : BaseBitmapImage() {
     companion object {
 
         init {
-            ImagesProcessor.default.addImageProcessor(UrlImage::class, Processor())
+            ImageProcessors.default.addImageProcessor(UrlImage::class, Processor())
         }
 
     }
@@ -27,15 +27,17 @@ data class UrlImage(val url: String) : BaseBitmapImage() {
 
         private var downloadedBytesMap = WeakHashMap<UrlImage, WeakReference<ByteArray>>()
 
-        override fun getBitmap(context: Context, image: UrlImage, options: BitmapFactory.Options?): Bitmap? {
+        override suspend fun getBitmap(context: Context, image: UrlImage, options: BitmapFactory.Options?): Bitmap? {
 
             return try {
                 val saveWeek = options?.inJustDecodeBounds != false
                 val bytes = image.getBytes(saveWeek)
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options).also {
                     if (!saveWeek) {
-                        downloadedBytesMap[image]?.clear()
-                        downloadedBytesMap.remove(image)
+                        synchronized(downloadedBytesMap) {
+                            downloadedBytesMap[image]?.clear()
+                            downloadedBytesMap.remove(image)
+                        }
                     }
                 }
             } catch (e: IOException) {
@@ -45,7 +47,9 @@ data class UrlImage(val url: String) : BaseBitmapImage() {
 
 
         private fun UrlImage.getBytes(saveWeak: Boolean): ByteArray {
-            var readBytes = downloadedBytesMap[this]?.get()
+            var readBytes = synchronized(downloadedBytesMap) {
+                downloadedBytesMap[this]?.get()
+            }
             if (readBytes != null) {
                 return readBytes
             }
@@ -58,7 +62,7 @@ data class UrlImage(val url: String) : BaseBitmapImage() {
                 connection.connect()
                 val input = connection.inputStream
                 readBytes = input.readBytes()
-                if (saveWeak) {
+                if (saveWeak) synchronized(downloadedBytesMap) {
                     downloadedBytesMap[this] = WeakReference(readBytes)
                 }
                 return readBytes

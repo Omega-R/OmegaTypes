@@ -1,1 +1,1 @@
-include ':app', ':omegatypes', ':picasso', ':glide', ":googledrive"
+include ':app', ':omegatypes', ':picasso', ':glide', ':imageviews', ":googledrive"

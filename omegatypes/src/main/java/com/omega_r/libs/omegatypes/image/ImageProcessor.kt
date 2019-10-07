@@ -11,9 +11,11 @@ import android.view.View
 import android.widget.ImageView
 import com.omega_r.libs.omegatypes.R
 import com.omega_r.libs.omegatypes.image.Image.Companion.NO_PLACEHOLDER_RES
+import kotlinx.coroutines.CoroutineScope
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Created by Anton Knyazev on 2019-10-03.
@@ -30,7 +32,7 @@ abstract class ImageProcessor<I : Image> {
         applyBackgroundInner(view, newPlaceholderResId)
     }
 
-    abstract fun I.getStream(context: Context, compressFormat: CompressFormat = CompressFormat.JPEG, quality: Int = 100): InputStream
+    abstract suspend fun I.getStream(context: Context, compressFormat: CompressFormat = CompressFormat.JPEG, quality: Int = 100): InputStream
 
     abstract fun I.preload(context: Context)
 
@@ -50,34 +52,35 @@ abstract class ImageProcessor<I : Image> {
         }
     }
 
-    protected inline fun <R> Drawable.toBitmap(converter: Bitmap.() -> R): R {
-        if (this is BitmapDrawable) {
-            return converter(bitmap)
-        }
-
-        val newBitmap = if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
-            Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888)!!
-        } else {
-            Bitmap.createBitmap(intrinsicWidth, intrinsicHeight, Bitmap.Config.ARGB_8888)!!
-        }
-
-        try {
-            val oldBounds = copyBounds()
-            setBounds(0, 0, newBitmap.width, newBitmap.height)
-
-            draw(Canvas(newBitmap))
-
-            bounds = oldBounds
-            return converter(newBitmap)
-        } finally {
-            newBitmap.recycle()
-        }
-    }
 
 }
 
 
-fun Bitmap?.toInputStream(compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
+inline fun <R> Drawable.toBitmapAndRecycle(converter: Bitmap.() -> R): R {
+    if (this is BitmapDrawable) {
+        return converter(bitmap)
+    }
+
+    val newBitmap = if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
+        Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888)!!
+    } else {
+        Bitmap.createBitmap(intrinsicWidth, intrinsicHeight, Bitmap.Config.ARGB_8888)!!
+    }
+
+    try {
+        val oldBounds = copyBounds()
+        setBounds(0, 0, newBitmap.width, newBitmap.height)
+
+        draw(Canvas(newBitmap))
+
+        bounds = oldBounds
+        return converter(newBitmap)
+    } finally {
+        newBitmap.recycle()
+    }
+}
+
+fun Bitmap?.toInputStream(compressFormat: CompressFormat, quality: Int): InputStream {
     val stream = ByteArrayOutputStream()
     val byteArray = if (this != null) {
         compress(compressFormat, quality, stream)

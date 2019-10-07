@@ -16,16 +16,17 @@ import com.squareup.picasso.Picasso
 import com.squareup.picasso.RequestCreator
 import com.squareup.picasso.Target
 import java.io.InputStream
+import java.lang.ref.WeakReference
 import kotlin.reflect.KClass
 
 /**
  * Created by Anton Knyazev on 2019-10-03.
  */
 class PicassoImagesProcessor(
-        private val oldImagesProcessor: ImagesProcessor,
+        private val oldImagesProcessor: ImageProcessors,
         picasso: Picasso? = null,
         vararg excludeImageClasses: KClass<out Image>
-) : ImagesProcessor() {
+) : ImageProcessors() {
 
     companion object {
 
@@ -47,7 +48,7 @@ class PicassoImagesProcessor(
         }
         return when (this) {
             is UrlImage -> picasso.load(url)
-            is FileImage -> picasso.load(file)
+            is JavaFileImage -> picasso.load(file)
             is UriImage -> picasso.load(uri)
             is ResourceImage -> picasso.load(resId)
             else -> null
@@ -76,22 +77,29 @@ class PicassoImagesProcessor(
         createRequestCreator()?.apply {
             if (view.width <= 0 || view.height <= 0) {
                 ImageSizeExtractor(view) {
-                    applyBackground(view, placeholderResId)
+                    applyBackground(it, placeholderResId)
                 }
             } else {
                 resize(view.width, view.height)
+                val viewWeak = WeakReference(view)
                 into(object : Target {
 
                     override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-                        Image.Processor.applyBackground(view, placeHolderDrawable)
+                        viewWeak.get()?.let {
+                            Image.Processor.applyBackground(it, placeHolderDrawable)
+                        }
                     }
 
                     override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-                        Image.Processor.applyBackground(view, errorDrawable)
+                        viewWeak.get()?.let {
+                            Image.Processor.applyBackground(it, errorDrawable)
+                        }
                     }
 
                     override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                        Image.Processor.applyBackground(view, BitmapDrawable(view.resources, bitmap))
+                        viewWeak.get()?.let {
+                            Image.Processor.applyBackground(it, BitmapDrawable(view.resources, bitmap))
+                        }
                     }
 
                 })
@@ -102,7 +110,7 @@ class PicassoImagesProcessor(
 
     }
 
-    override fun Image.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
+    override suspend fun Image.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
         return createRequestCreator()?.run {
             val stream = WrapperInputStream()
 

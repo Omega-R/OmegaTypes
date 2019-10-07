@@ -18,7 +18,7 @@ class UriImage private constructor() : BaseBitmapImage() {
     companion object {
 
         init {
-            ImagesProcessor.default.addImageProcessor(UriImage::class, Processor())
+            ImageProcessors.default.addImageProcessor(UriImage::class, Processor())
         }
 
     }
@@ -61,7 +61,7 @@ class UriImage private constructor() : BaseBitmapImage() {
 
     class Processor : BaseBitmapImage.Processor<UriImage>(true) {
 
-        override fun getBitmap(context: Context, image: UriImage, options: BitmapFactory.Options?): Bitmap? {
+        override suspend fun getBitmap(context: Context, image: UriImage, options: BitmapFactory.Options?): Bitmap? {
             val uri = image.uri
             when (val scheme = uri.scheme) {
                 SCHEME_ANDROID_RESOURCE, SCHEME_FILE, SCHEME_CONTENT -> {

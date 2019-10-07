@@ -9,7 +9,11 @@ import android.widget.ImageView
 import com.omega_r.libs.omegatypes.tools.ImageAsyncExecutor.Companion.executeImageAsync
 import com.omega_r.libs.omegatypes.tools.ImageSizeExtractor
 import com.omega_r.libs.omegatypes.tools.stripeBitmapExtractor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.InputStream
+import java.lang.ref.WeakReference
 
 /**
  * Created by Anton Knyazev on 2019-10-03.
@@ -40,15 +44,34 @@ abstract class BaseBitmapImage : Image() {
             }
         }
 
-        protected abstract fun getBitmap(context: Context, image: I, options: BitmapFactory.Options?): Bitmap?
+        protected abstract suspend fun getBitmap(context: Context, image: I, options: BitmapFactory.Options?): Bitmap?
 
         override fun I.applyBackgroundInner(view: View, placeholderResId: Int) {
-            Image.Processor.applyBackground(view, BitmapDrawable(view.resources, getBitmap(view.context, this, null)))
+            val viewWeak = WeakReference(view)
+            ImageProcessors.current.launch {
+                val view1 = viewWeak.get() ?: return@launch
+                val bitmap = getBitmap(view1.context, this@applyBackgroundInner, null)
+
+                withContext(Dispatchers.Main) {
+                    val view2 = viewWeak.get() ?: return@withContext
+                    Image.Processor.applyBackground(view2, bitmap?.let { BitmapDrawable(view2.resources, it) })
+                }
+            }
         }
 
-        override fun I.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
-            return getBitmap(context, this, null)
-                    .toInputStream(compressFormat, quality)
+        override suspend fun I.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
+            return withContext(ImageProcessors.current.coroutineContext) {
+                val bitmap = getBitmap(context, this@getStream, null)
+
+                try {
+                    return@withContext bitmap
+                            .toInputStream(compressFormat, quality)
+                } finally {
+                    if (autoRecycle) {
+                        bitmap?.recycle()
+                    }
+                }
+            }
         }
 
         override fun I.preload(context: Context) {

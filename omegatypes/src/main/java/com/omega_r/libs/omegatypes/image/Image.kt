@@ -9,6 +9,7 @@ import android.os.Build
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.Serializable
 
@@ -22,7 +23,7 @@ open class Image : Serializable {
         const val NO_PLACEHOLDER_RES = 0
 
         init {
-            ImagesProcessor.default.addImageProcessor(Image::class, Processor())
+            ImageProcessors.default.addImageProcessor(Image::class, Processor())
         }
 
 
@@ -107,7 +108,7 @@ open class Image : Serializable {
             }
         }
 
-        override fun Image.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
+        override suspend fun Image.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
             return object : InputStream() {
                 override fun read() = -1
             }
@@ -124,8 +125,19 @@ open class Image : Serializable {
 
 }
 
+suspend fun Image.getStream(
+        context: Context,
+        compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG,
+        quality: Int = 100,
+        processor: ImageProcessors = ImageProcessors.current
+): InputStream {
+    return with(processor) {
+        this@getStream.getStream(context, compressFormat, quality)
+    }
+}
+
 @JvmOverloads
-fun ImageView.setImage(image: Image?, placeholderResId: Int = 0, processor: ImagesProcessor = ImagesProcessor.current) {
+fun ImageView.setImage(image: Image?, placeholderResId: Int = Image.NO_PLACEHOLDER_RES, processor: ImageProcessors = ImageProcessors.current) {
     with(processor) {
         if (image != null) {
             image.applyImage(this@setImage, placeholderResId)
@@ -140,7 +152,7 @@ fun ImageView.setImage(image: Image?, placeholderResId: Int = 0, processor: Imag
 }
 
 @JvmOverloads
-fun View.setBackground(image: Image?, placeholderResId: Int = 0, processor: ImagesProcessor = ImagesProcessor.current) {
+fun View.setBackground(image: Image?, placeholderResId: Int = Image.NO_PLACEHOLDER_RES, processor: ImageProcessors = ImageProcessors.current) {
     with(processor) {
         if (image != null) {
             image.applyBackground(this@setBackground, placeholderResId)

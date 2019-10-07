@@ -4,31 +4,38 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.view.View
 import android.widget.ImageView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.InputStream
+import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
 /**
  * Created by Anton Knyazev on 2019-10-03.
  */
-abstract class ImagesProcessor {
+abstract class ImageProcessors : CoroutineScope {
 
     companion object {
 
         val default = Default()
 
-        var current: ImagesProcessor = default
+        var current: ImageProcessors = default
 
     }
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Default
 
     abstract fun Image.applyImage(imageView: ImageView, placeholderResId: Int)
 
     abstract fun Image.applyBackground(view: View, placeholderResId: Int)
 
-    abstract fun Image.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream
+    abstract suspend fun Image.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream
 
     abstract fun Image.preload(context: Context)
 
-    class Default : ImagesProcessor() {
+    class Default : ImageProcessors() {
 
         private val map: MutableMap<KClass<out Image>, ImageProcessor<*>> = mutableMapOf()
 
@@ -44,12 +51,15 @@ abstract class ImagesProcessor {
             applyBackground(view, placeholderResId)
         }
 
-        override fun Image.getStream(
+        override suspend fun Image.getStream(
                 context: Context,
                 compressFormat: Bitmap.CompressFormat,
                 quality: Int
-        ): InputStream = with(getImageProcessor()) {
-            getStream(context, compressFormat, quality)
+        ): InputStream = withContext(coroutineContext) {
+            val processor = getImageProcessor()
+            with(processor) {
+                getStream(context, compressFormat, quality)
+            }
         }
 
         override fun Image.preload(context: Context) {

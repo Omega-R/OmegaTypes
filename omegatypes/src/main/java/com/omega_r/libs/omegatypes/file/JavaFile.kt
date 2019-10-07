@@ -1,5 +1,6 @@
 package com.omega_r.libs.omegatypes.file
 
+import android.content.Context
 import android.webkit.MimeTypeMap
 import com.omega_r.libs.omegatypes.file.File.System.Companion.getMode
 import java.io.FileOutputStream
@@ -37,25 +38,25 @@ data class JavaFile(val file: java.io.File) : File {
             private val rootFile = java.io.File("/")
         }
 
-        override suspend fun getMode(file: JavaFile): List<File.Mode> {
+        override suspend fun getMode(context: Context, file: JavaFile): List<File.Mode> {
             val canRead = file.file.canRead()
             val canWrite = file.file.canWrite()
 
             return getMode(canRead, canWrite)
         }
 
-        override suspend fun isExists(file: JavaFile): Boolean {
+        override suspend fun isExists(context: Context, file: JavaFile): Boolean {
             return file.file.exists()
         }
 
-        override suspend fun createInputStream(file: JavaFile): InputStream? {
+        override suspend fun createInputStream(context: Context, file: JavaFile): InputStream? {
             if (file.file.canRead()) {
                 return file.file.inputStream()
             }
             return null
         }
 
-        override suspend fun createOutputStream(file: JavaFile, append: Boolean): OutputStream? {
+        override suspend fun createOutputStream(context: Context, file: JavaFile, append: Boolean): OutputStream? {
             if (file.file.canWrite()) {
                 return FileOutputStream(file.file, append)
             }
@@ -63,14 +64,14 @@ data class JavaFile(val file: java.io.File) : File {
         }
 
 
-        override suspend fun getFiles(file: JavaFile): List<JavaFile>? {
+        override suspend fun getFiles(context: Context, file: JavaFile): List<JavaFile>? {
             if (file.type == File.Type.FOLDER) {
                 return file.file.listFiles().map(File.Companion::from)
             }
             return null
         }
 
-        override suspend fun getRootFiles(): List<JavaFile>? {
+        override suspend fun getRootFiles(context: Context): List<JavaFile>? {
             return rootFile.listFiles().map(File.Companion::from)
         }
 

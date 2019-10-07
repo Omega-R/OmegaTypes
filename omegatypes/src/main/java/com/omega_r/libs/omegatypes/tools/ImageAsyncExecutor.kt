@@ -4,19 +4,20 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.AsyncTask
 import android.widget.ImageView
+import kotlinx.coroutines.runBlocking
 import java.lang.ref.WeakReference
 import java.util.*
 
 /**
  * Created by Anton Knyazev on 2019-10-02.
  */
-class ImageAsyncExecutor(imageView: ImageView, private val extractor: (Context) -> Bitmap?) : AsyncTask<Void, Void, Bitmap?>() {
+class ImageAsyncExecutor(imageView: ImageView, private val extractor: suspend (Context) -> Bitmap?) : AsyncTask<Void, Void, Bitmap?>() {
 
     companion object {
 
         private val imageAsyncExecutors = WeakHashMap<ImageView, ImageAsyncExecutor>()
 
-        fun executeImageAsync(imageView: ImageView, extractor: (Context) -> Bitmap?): ImageAsyncExecutor {
+        fun executeImageAsync(imageView: ImageView, extractor: suspend (Context) -> Bitmap?): ImageAsyncExecutor {
             return ImageAsyncExecutor(imageView, extractor)
                     .apply {
                         execute()
@@ -35,7 +36,9 @@ class ImageAsyncExecutor(imageView: ImageView, private val extractor: (Context) 
 
     override fun doInBackground(vararg params: Void): Bitmap? {
         val context = context.get() ?: return null
-        return extractor(context)
+        return runBlocking {
+            extractor(context)
+        }
     }
 
     override fun onPostExecute(result: Bitmap?) {

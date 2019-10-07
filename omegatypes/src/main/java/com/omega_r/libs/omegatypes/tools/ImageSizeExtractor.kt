@@ -3,13 +3,15 @@ package com.omega_r.libs.omegatypes.tools
 import android.view.View
 import android.view.View.OnAttachStateChangeListener
 import android.view.ViewTreeObserver.OnPreDrawListener
+import com.omega_r.libs.omegatypes.image.ImageProcessors
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.util.*
 
 /**
  * Created by Anton Knyazev on 2019-10-02.
  */
-class ImageSizeExtractor<V : View>(target: V, callback: (view: V) -> Unit) : OnPreDrawListener, OnAttachStateChangeListener {
+class ImageSizeExtractor<V : View>(target: V, callback: suspend (view: V) -> Unit) : OnPreDrawListener, OnAttachStateChangeListener {
 
     companion object {
 
@@ -18,7 +20,7 @@ class ImageSizeExtractor<V : View>(target: V, callback: (view: V) -> Unit) : OnP
     }
 
     private val target: WeakReference<V> = WeakReference(target)
-    private var callback: ((view: V) -> Unit)? = callback
+    private var callback: (suspend (view: V) -> Unit)? = callback
 
     init {
         imageSizeExtractors[target]?.cancel()
@@ -47,7 +49,9 @@ class ImageSizeExtractor<V : View>(target: V, callback: (view: V) -> Unit) : OnP
         vto.removeOnPreDrawListener(this)
         this.target.clear()
 
-        callback?.invoke(target)
+        ImageProcessors.current.launch {
+            callback?.invoke(target)
+        }
 
         return true
     }

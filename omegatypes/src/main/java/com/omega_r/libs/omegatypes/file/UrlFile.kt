@@ -1,5 +1,6 @@
 package com.omega_r.libs.omegatypes.file
 
+import android.content.Context
 import android.webkit.MimeTypeMap
 import android.webkit.URLUtil
 import java.io.IOException
@@ -30,17 +31,19 @@ class UrlFile(val url: String, name: String? = null, mimeType: String? = null) :
     override val type: File.Type
         get() = File.Type.FILE
 
+
     class System : File.System<UrlFile> {
 
-        override suspend fun getMode(file: UrlFile): List<File.Mode> = File.System.getMode(canRead = true, canWrite = false)
+        override suspend fun getMode(context: Context, file: UrlFile): List<File.Mode> = File.System.getMode(canRead = true, canWrite = false)
 
-        override suspend fun createInputStream(file: UrlFile): InputStream? {
+        override suspend fun createInputStream(context: Context, file: UrlFile): InputStream? {
             var connection: HttpURLConnection? = null
 
             try {
-                connection = URL(file.url).openConnection() as HttpURLConnection
-                connection.doInput = true;
-                connection.connect()
+                connection = (URL(file.url).openConnection() as HttpURLConnection).apply {
+                    doInput = true
+                    connect()
+                }
 
                 val readBytes = connection.inputStream.readBytes()
 
@@ -51,9 +54,9 @@ class UrlFile(val url: String, name: String? = null, mimeType: String? = null) :
             }
         }
 
-        override suspend fun createOutputStream(file: UrlFile, append: Boolean): OutputStream? = null
+        override suspend fun createOutputStream(context: Context, file: UrlFile, append: Boolean): OutputStream? = null
 
-        override suspend fun isExists(file: UrlFile): Boolean {
+        override suspend fun isExists(context: Context, file: UrlFile): Boolean {
             val redirects = HttpURLConnection.getFollowRedirects()
             return try {
                 HttpURLConnection.setFollowRedirects(false)
@@ -69,10 +72,29 @@ class UrlFile(val url: String, name: String? = null, mimeType: String? = null) :
 
         }
 
-        override suspend fun getFiles(file: UrlFile): List<UrlFile>? = null
+        override suspend fun getFiles(context: Context, file: UrlFile): List<UrlFile>? = null
 
-        override suspend fun getRootFiles(): List<UrlFile>? = null
+        override suspend fun getRootFiles(context: Context): List<UrlFile>? = null
 
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as UrlFile
+
+        if (url != other.url) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return url.hashCode()
+    }
+
+}
+
+fun File.Companion.from(url: String, name: String? = null, mimeType: String? = null): UrlFile {
+    return UrlFile(url, name, mimeType)
 }

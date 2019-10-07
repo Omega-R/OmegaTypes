@@ -14,8 +14,8 @@ class UriFile private constructor() : File {
 
     companion object {
 
-        fun setAsDefaultUriFileSystem(context: Context) {
-            FileSystems.default.addFileSystem(UriFile::class, UriFile.System(context))
+        init {
+            FileSystems.default.addFileSystem(UriFile::class, System())
         }
 
     }
@@ -53,30 +53,50 @@ class UriFile private constructor() : File {
         mimeType = inStream.readUTF()
     }
 
-    class System(private val context: Context) : File.System<UriFile> {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-        override suspend fun getMode(file: UriFile): List<File.Mode> = File.System.getMode(canRead = true, canWrite = false)
+        other as UriFile
 
-        override suspend fun createInputStream(file: UriFile): InputStream? {
+        if (uri != other.uri) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return uri.hashCode()
+    }
+
+
+    class System : File.System<UriFile> {
+
+        override suspend fun getMode(context: Context, file: UriFile): List<File.Mode> = File.System.getMode(canRead = true, canWrite = false)
+
+        override suspend fun createInputStream(context: Context, file: UriFile): InputStream? {
             return context.contentResolver.openInputStream(file.uri) ?: return null
         }
 
-        override suspend fun createOutputStream(file: UriFile, append: Boolean): OutputStream? = null
+        override suspend fun createOutputStream(context: Context, file: UriFile, append: Boolean): OutputStream? = null
 
-        override suspend fun isExists(file: UriFile): Boolean {
+        override suspend fun isExists(context: Context, file: UriFile): Boolean {
             try {
-                createInputStream(file)?.close() ?: return false
+                createInputStream(context, file)?.close() ?: return false
                 return true
             } catch (e: FileNotFoundException) {
                 return false
             }
         }
 
-        override suspend fun getFiles(file: UriFile): List<UriFile>? = null
+        override suspend fun getFiles(context: Context, file: UriFile): List<UriFile>? = null
 
-        override suspend fun getRootFiles(): List<UriFile>? = null
+        override suspend fun getRootFiles(context: Context): List<UriFile>? = null
 
     }
 
 
+}
+
+fun File.Companion.from(file: Uri, name: String? = null, mimeType: String? = null): UriFile {
+    return UriFile(file, name, mimeType)
 }

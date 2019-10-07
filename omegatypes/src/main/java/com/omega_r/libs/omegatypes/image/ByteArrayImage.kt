@@ -12,7 +12,7 @@ data class ByteArrayImage(val byteArray: ByteArray) : BaseBitmapImage() {
     companion object {
 
         init {
-            ImagesProcessor.default.addImageProcessor(ByteArrayImage::class, Processor())
+            ImageProcessors.default.addImageProcessor(ByteArrayImage::class, Processor())
         }
 
     }
@@ -37,7 +37,7 @@ data class ByteArrayImage(val byteArray: ByteArray) : BaseBitmapImage() {
 
     open class Processor : BaseBitmapImage.Processor<ByteArrayImage>(true) {
 
-        override fun getBitmap(context: Context, image: ByteArrayImage, options: BitmapFactory.Options?): Bitmap? {
+        override suspend fun getBitmap(context: Context, image: ByteArrayImage, options: BitmapFactory.Options?): Bitmap? {
             return BitmapFactory.decodeByteArray(image.byteArray, 0, image.byteArray.size, options)
         }
 
