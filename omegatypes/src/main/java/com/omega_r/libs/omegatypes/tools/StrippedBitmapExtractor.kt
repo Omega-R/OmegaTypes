@@ -56,7 +56,7 @@ suspend fun stripeBitmapExtractor(
                 (roughBitmap.height * values[4]).toInt(),
                 true
         )
-        if (autoRecycle && resizedBitmap == roughBitmap) {
+        if (autoRecycle && resizedBitmap != roughBitmap) {
             roughBitmap.recycle()
         }
         return resizedBitmap
