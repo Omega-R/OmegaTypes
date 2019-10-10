@@ -1,34 +1,22 @@
 package com.omega_r.libs.omegatypes.tools
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.RectF
 import android.widget.ImageView
-import kotlin.math.max
 
 
 /**
  * Created by Anton Knyazev on 2019-10-02.
  */
 
-suspend fun stripeBitmapExtractor(
+fun getScaledBitmap(
         dstWidth: Int,
         dstHeight: Int,
         imageScaleType: ImageView.ScaleType?,
         autoRecycle: Boolean,
-        simpleExtractor:  suspend (BitmapFactory.Options?) -> Bitmap?): Bitmap? {
-
-    var options = BitmapFactory.Options()
-    options.inJustDecodeBounds = true;
-    simpleExtractor(options)
-
-    val inWidth = options.outWidth
-    val inHeight = options.outHeight
-
-    options = BitmapFactory.Options()
-    options.inSampleSize = max(inWidth / dstWidth, inHeight / dstHeight)
-    val roughBitmap = simpleExtractor(options) ?: return null
+        roughBitmap: Bitmap
+): Bitmap {
 
     val scaleType = when (imageScaleType) {
         ImageView.ScaleType.MATRIX -> Matrix.ScaleToFit.FILL

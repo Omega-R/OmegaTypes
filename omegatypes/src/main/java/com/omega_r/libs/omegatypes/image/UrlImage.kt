@@ -2,12 +2,10 @@ package com.omega_r.libs.omegatypes.image
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import com.omega_r.libs.omegatypes.decoders.toBitmap
 import java.io.IOException
-import java.lang.ref.WeakReference
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.*
 
 
 /**
@@ -25,47 +23,26 @@ data class UrlImage(val url: String) : BaseBitmapImage() {
 
     class Processor : BaseBitmapImage.Processor<UrlImage>(true) {
 
-        private var downloadedBytesMap = WeakHashMap<UrlImage, WeakReference<ByteArray>>()
 
-        override suspend fun getBitmap(context: Context, image: UrlImage, options: BitmapFactory.Options?): Bitmap? {
+        override suspend fun getBitmap(context: Context, image: UrlImage, width: Int?, height: Int?): Bitmap? {
 
             return try {
-                val saveWeek = options?.inJustDecodeBounds != false
-                val bytes = image.getBytes(saveWeek)
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options).also {
-                    if (!saveWeek) {
-                        synchronized(downloadedBytesMap) {
-                            downloadedBytesMap[image]?.clear()
-                            downloadedBytesMap.remove(image)
-                        }
-                    }
-                }
+                val bytes = image.getBytes().inputStream()
+                bytes.toBitmap(width, height)
             } catch (e: IOException) {
                 null
             }
         }
 
 
-        private fun UrlImage.getBytes(saveWeak: Boolean): ByteArray {
-            var readBytes = synchronized(downloadedBytesMap) {
-                downloadedBytesMap[this]?.get()
-            }
-            if (readBytes != null) {
-                return readBytes
-            }
-
+        private fun UrlImage.getBytes(): ByteArray {
             var connection: HttpURLConnection? = null
-
             try {
                 connection = URL(url).openConnection() as HttpURLConnection
                 connection.doInput = true;
                 connection.connect()
                 val input = connection.inputStream
-                readBytes = input.readBytes()
-                if (saveWeak) synchronized(downloadedBytesMap) {
-                    downloadedBytesMap[this] = WeakReference(readBytes)
-                }
-                return readBytes
+                return input.readBytes()
             } finally {
                 connection?.disconnect()
             }

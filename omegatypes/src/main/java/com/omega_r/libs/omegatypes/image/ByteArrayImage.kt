@@ -2,7 +2,7 @@ package com.omega_r.libs.omegatypes.image
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import com.omega_r.libs.omegatypes.decoders.toBitmap
 
 /**
  * Created by Anton Knyazev on 2019-10-03.
@@ -37,8 +37,8 @@ data class ByteArrayImage(val byteArray: ByteArray) : BaseBitmapImage() {
 
     open class Processor : BaseBitmapImage.Processor<ByteArrayImage>(true) {
 
-        override suspend fun getBitmap(context: Context, image: ByteArrayImage, options: BitmapFactory.Options?): Bitmap? {
-            return BitmapFactory.decodeByteArray(image.byteArray, 0, image.byteArray.size, options)
+        override suspend fun getBitmap(context: Context, image: ByteArrayImage, width: Int?, height: Int?): Bitmap? {
+            return image.byteArray.toBitmap(width, height)
         }
 
     }

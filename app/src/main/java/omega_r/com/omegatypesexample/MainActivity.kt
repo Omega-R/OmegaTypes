@@ -23,19 +23,13 @@ import java.io.ByteArrayOutputStream
 
 class MainActivity : BaseActivity() {
 
-    companion object {
-
-        init {
-            GlideImagesProcessor.setAsCurrentImagesProcessor()
-        }
-
-    }
-
     private val exampleTextView by bind<TextView>(R.id.textview)
     private val imageView by bind<ImageView>(R.id.imageview)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        GlideImagesProcessor.setGlideBitmapPool(this)
 
         setContentView(R.layout.activity_main)
         val text = Text.from("test ") +
@@ -55,28 +49,31 @@ class MainActivity : BaseActivity() {
         title = list.join(",", postfix = ".").getCharSequence(this)
 
 
-        val image = intent.getSerializableExtra("test") as? Image ?: run {
-
-            val image = Image.from("https://dejagerart.com/wp-content/uploads/2018/09/Test-Logo-Circle-black-transparent.png")
-
-            ImageProcessors.current.launch {
-                val stream = image.getStream(this@MainActivity, Bitmap.CompressFormat.PNG)
-                val bitmap = BitmapFactory.decodeStream(stream)
-
-                val bitmapImage = Image.from(BitmapDrawable(this@MainActivity.resources, bitmap))
-
-                withContext(Dispatchers.Main) {
-                    imageView.setImage(bitmapImage)
+        val image = Image.from("https://dejagerart.com/wp-content/uploads/2018/09/Test-Logo-Circle-black-transparent.png")
 
 
-                    intent.putExtra("test", bitmapImage)
-                    finish()
-                    startActivity(intent)
-//                imageView.setImageBitmap(bitmap)
-                }
-            }
-            image
-        }
+//        val image = intent.getSerializableExtra("test") as? Image ?: run {
+//
+//            val image = Image.from("https://dejagerart.com/wp-content/uploads/2018/09/Test-Logo-Circle-black-transparent.png")
+//
+//            ImageProcessors.current.launch {
+//                val stream = image.getStream(this@MainActivity, Bitmap.CompressFormat.PNG)
+//                val bitmap = BitmapFactory.decodeStream(stream)
+//
+//                val bitmapImage = Image.from(BitmapDrawable(this@MainActivity.resources, bitmap))
+//
+//                withContext(Dispatchers.Main) {
+//                    imageView.setImage(bitmapImage)
+//
+//
+////                    intent.putExtra("test", bitmapImage)
+////                    finish()
+////                    startActivity(intent)
+////                imageView.setImageBitmap(bitmap)
+//                }
+//            }
+//            image
+//        }
 
         imageView.setImage(image)
 

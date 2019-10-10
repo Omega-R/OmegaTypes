@@ -2,8 +2,8 @@ package com.omega_r.libs.omegatypes.image
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Base64
+import com.omega_r.libs.omegatypes.decoders.toBitmap
 
 /**
  * Created by Anton Knyazev on 2019-10-03.
@@ -20,14 +20,13 @@ data class Base64Image(val base64String: String, val flags: Int) : BaseBitmapIma
 
     class Processor : BaseBitmapImage.Processor<Base64Image>(true) {
 
-        override suspend fun getBitmap(context: Context, image: Base64Image, options: BitmapFactory.Options?): Bitmap? {
+        override suspend fun getBitmap(context: Context, image: Base64Image, width: Int?, height: Int?): Bitmap? {
             val base64String = image.base64String
             val position = base64String.indexOf(",")
             val data = if (position != -1) base64String.substring(position + 1) else base64String
-            val decode = Base64.decode(data, image.flags)
+            val byteArray = Base64.decode(data, image.flags)
 
-            return BitmapFactory.decodeByteArray(decode, 0, decode.size, options)
-
+            return byteArray.toBitmap(width, height)
         }
 
     }

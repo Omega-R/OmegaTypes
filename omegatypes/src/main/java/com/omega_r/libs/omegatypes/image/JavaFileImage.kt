@@ -2,7 +2,7 @@ package com.omega_r.libs.omegatypes.image
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import com.omega_r.libs.omegatypes.decoders.toBitmap
 import java.io.File
 
 /**
@@ -20,8 +20,8 @@ data class JavaFileImage(val file: File) : BaseBitmapImage() {
 
     class Processor : BaseBitmapImage.Processor<JavaFileImage>(true) {
 
-        override suspend fun getBitmap(context: Context, image: JavaFileImage, options: BitmapFactory.Options?): Bitmap? {
-            return BitmapFactory.decodeFile(image.file.absolutePath, options)
+        override suspend fun getBitmap(context: Context, image: JavaFileImage, width: Int?, height: Int?): Bitmap? {
+            return image.file.toBitmap(width, height)
         }
 
     }

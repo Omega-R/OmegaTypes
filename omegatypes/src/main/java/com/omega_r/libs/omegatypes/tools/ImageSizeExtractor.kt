@@ -17,6 +17,7 @@ class ImageSizeExtractor<V : View>(target: V, callback: suspend (view: V) -> Uni
 
         private val imageSizeExtractors = WeakHashMap<View, ImageSizeExtractor<*>>()
 
+
     }
 
     private val target: WeakReference<V> = WeakReference(target)

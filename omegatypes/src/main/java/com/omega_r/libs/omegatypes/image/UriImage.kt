@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import com.omega_r.libs.omegatypes.decoders.toBitmap
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -61,12 +62,12 @@ class UriImage private constructor() : BaseBitmapImage() {
 
     class Processor : BaseBitmapImage.Processor<UriImage>(true) {
 
-        override suspend fun getBitmap(context: Context, image: UriImage, options: BitmapFactory.Options?): Bitmap? {
+        override suspend fun getBitmap(context: Context, image: UriImage, width: Int?, height: Int?): Bitmap? {
             val uri = image.uri
             when (val scheme = uri.scheme) {
                 SCHEME_ANDROID_RESOURCE, SCHEME_FILE, SCHEME_CONTENT -> {
                     val stream = context.contentResolver.openInputStream(uri) ?: return null
-                    return BitmapFactory.decodeStream(stream, null, options)
+                    return stream.toBitmap(width, height)
                 }
                 else -> throw IllegalArgumentException("Not supported uri scheme = $scheme")
             }

@@ -79,13 +79,8 @@ class BitmapImage private constructor() : BaseBitmapImage() {
 
     class Processor : BaseBitmapImage.Processor<BitmapImage>(false) {
 
-        override suspend fun getBitmap(context: Context, image: BitmapImage, options: BitmapFactory.Options?): Bitmap? {
-            val bitmap = image.bitmap
-            if (options?.inJustDecodeBounds == true) {
-                options.outWidth = bitmap.width
-                options.outHeight = bitmap.height
-            }
-            return bitmap
+        override suspend fun getBitmap(context: Context, image: BitmapImage, width: Int?, height: Int?): Bitmap? {
+            return image.bitmap
         }
 
     }

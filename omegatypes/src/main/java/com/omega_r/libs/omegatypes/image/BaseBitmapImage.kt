@@ -2,13 +2,12 @@ package com.omega_r.libs.omegatypes.image
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.view.View
 import android.widget.ImageView
 import com.omega_r.libs.omegatypes.tools.ImageAsyncExecutor.Companion.executeImageAsync
 import com.omega_r.libs.omegatypes.tools.ImageSizeExtractor
-import com.omega_r.libs.omegatypes.tools.stripeBitmapExtractor
+import com.omega_r.libs.omegatypes.tools.getScaledBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -37,14 +36,14 @@ abstract class BaseBitmapImage : Image() {
             } else {
                 val imageScaleType = imageView.scaleType
                 executeImageAsync(imageView) { context ->
-                    stripeBitmapExtractor(width, height, imageScaleType, autoRecycle) {
-                        getBitmap(context, this, it)
+                    getBitmap(context, this, width, height)?.run {
+                        getScaledBitmap(width, height, imageScaleType, autoRecycle, this)
                     }
                 }
             }
         }
 
-        protected abstract suspend fun getBitmap(context: Context, image: I, options: BitmapFactory.Options?): Bitmap?
+        protected abstract suspend fun getBitmap(context: Context, image: I, width: Int? = null, height: Int? = null): Bitmap?
 
         override fun I.applyBackgroundInner(view: View, placeholderResId: Int) {
             val viewWeak = WeakReference(view)

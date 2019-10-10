@@ -9,6 +9,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.transition.Transition
+import com.omega_r.libs.omegatypes.decoders.BitmapDecoders
+import com.omega_r.libs.omegatypes.decoders.SimpleBitmapDecoders
 import com.omega_r.libs.omegatypes.image.Image.Companion.NO_PLACEHOLDER_RES
 import java.io.InputStream
 import kotlin.reflect.KClass
@@ -25,6 +27,10 @@ class GlideImagesProcessor(
 
         fun setAsCurrentImagesProcessor() {
             current = GlideImagesProcessor(current)
+        }
+
+        fun setGlideBitmapPool(context: Context) {
+            BitmapDecoders.current = SimpleBitmapDecoders(GlideBitmapPool(Glide.get(context).bitmapPool))
         }
 
     }
