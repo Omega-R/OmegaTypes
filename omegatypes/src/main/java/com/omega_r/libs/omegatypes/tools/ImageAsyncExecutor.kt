@@ -11,14 +11,18 @@ import java.util.*
 /**
  * Created by Anton Knyazev on 2019-10-02.
  */
-class ImageAsyncExecutor(imageView: ImageView, private val extractor: suspend (Context) -> Bitmap?) : AsyncTask<Void, Void, Bitmap?>() {
+class ImageAsyncExecutor(
+        imageView: ImageView,
+        private val extractor: suspend (Context) -> Bitmap?,
+        private val setter: (ImageView, Bitmap) -> Unit
+) : AsyncTask<Void, Void, Bitmap?>() {
 
     companion object {
 
         private val imageAsyncExecutors = WeakHashMap<ImageView, ImageAsyncExecutor>()
 
-        fun executeImageAsync(imageView: ImageView, extractor: suspend (Context) -> Bitmap?): ImageAsyncExecutor {
-            return ImageAsyncExecutor(imageView, extractor)
+        fun executeImageAsync(imageView: ImageView, extractor: suspend (Context) -> Bitmap?, setter: (ImageView, Bitmap) -> Unit): ImageAsyncExecutor {
+            return ImageAsyncExecutor(imageView, extractor, setter)
                     .apply {
                         execute()
                     }
@@ -45,7 +49,7 @@ class ImageAsyncExecutor(imageView: ImageView, private val extractor: suspend (C
         val imageView = imageView.get() ?: return
         this.imageView.clear()
         if (result != null) {
-            imageView.setImageBitmap(result)
+            setter(imageView, result)
         }
         imageAsyncExecutors.remove(imageView)
     }

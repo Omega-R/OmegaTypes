@@ -9,6 +9,7 @@ import android.os.Build
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import com.omega_r.libs.omegatypes.decoders.BitmapDecoders
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.Serializable

@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import kotlin.concurrent.thread
 
 
 class MainActivity : BaseActivity() {
@@ -28,8 +29,6 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        GlideImagesProcessor.setGlideBitmapPool(this)
 
         setContentView(R.layout.activity_main)
         val text = Text.from("test ") +
@@ -76,6 +75,8 @@ class MainActivity : BaseActivity() {
 //        }
 
         imageView.setImage(image)
+
+
 
 //        thread {
 //            val stream = image.getStream(this, Bitmap.CompressFormat.PNG)

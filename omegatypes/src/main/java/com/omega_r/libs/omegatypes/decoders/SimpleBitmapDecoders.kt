@@ -3,6 +3,7 @@ package com.omega_r.libs.omegatypes.decoders
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
+import java.io.BufferedInputStream
 import java.io.File
 import java.io.InputStream
 
@@ -10,6 +11,8 @@ import java.io.InputStream
 /**
  * Created by Anton Knyazev on 2019-10-09.
  */
+private const val MARK_POSITION = 5 * 1024 * 1024
+
 open class SimpleBitmapDecoders(protected val bitmapPool: BitmapPool) : BitmapDecoders {
 
     override fun decodeBitmap(source: File, requiredWidth: Int?, requiredHeight: Int?): Bitmap? {
@@ -19,8 +22,13 @@ open class SimpleBitmapDecoders(protected val bitmapPool: BitmapPool) : BitmapDe
     }
 
     override fun decodeBitmap(source: InputStream, requiredWidth: Int?, requiredHeight: Int?): Bitmap? {
+        val stream = if (!source.markSupported()) BufferedInputStream(source) else source
+        stream.mark(MARK_POSITION)
+
         return decodeBitmap(requiredWidth, requiredHeight) {
-            BitmapFactory.decodeStream(source, null, it)
+            BitmapFactory.decodeStream(stream, null, it).also {
+                stream.reset()
+            }
         }
     }
 
@@ -42,31 +50,38 @@ open class SimpleBitmapDecoders(protected val bitmapPool: BitmapPool) : BitmapDe
         bitmapPool.trimMemory(level)
     }
 
-    protected inline fun decodeBitmap(reqWidth: Int?, reqHeight: Int?, bitmapFactory: (BitmapFactory.Options) -> Bitmap?): Bitmap? {
+    protected inline fun decodeBitmap(reqWidth: Int?, reqHeight: Int?, decoder: (BitmapFactory.Options) -> Bitmap?): Bitmap? {
         val options = BitmapFactory.Options()
 
-        val inBitmap = if (reqWidth != null && reqHeight != null) {
-            options.inJustDecodeBounds = true
-            bitmapFactory(options)
-            options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight)
-            options.inJustDecodeBounds = false
+        if (reqWidth != null && reqHeight != null) {
+            val tryOptions = BitmapFactory.Options()
+            tryOptions.inJustDecodeBounds = true
+            decoder(tryOptions)
+            options.inSampleSize = calculateInSampleSize(tryOptions, reqWidth, reqHeight)
+            tryOptions.inSampleSize = options.inSampleSize
             options.inMutable = true
-            bitmapPool.getBitmap(options.outWidth, options.outHeight, options.inPreferredConfig)
+            val inBitmap = bitmapPool.getBitmap(tryOptions.outWidth, tryOptions.outHeight, tryOptions.inPreferredConfig)
+
+            if (inBitmap != null && canUseForInBitmap(inBitmap, tryOptions)) {
+                options.inBitmap = inBitmap
+            }
         } else {
             options.inMutable = true
             options.inSampleSize = 1
-            null
-        }
-
-        if (inBitmap != null && canUseForInBitmap(inBitmap, options)) {
-            options.inBitmap = inBitmap
         }
 
         return try {
-            bitmapFactory(options)
+            val bitmap = decoder(options)
+            bitmap
         } catch (e: Exception) {
-            options.inBitmap = null
-            bitmapFactory(options)
+            e.printStackTrace()
+            options.inBitmap ?.let {
+                bitmapPool.putBitmap(it)
+                options.inBitmap = null
+            }
+
+            val bitmap = decoder(options)
+            bitmap
         }
     }
 
