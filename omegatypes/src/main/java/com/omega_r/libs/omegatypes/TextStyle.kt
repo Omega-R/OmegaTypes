@@ -7,6 +7,7 @@ import android.text.style.*
 import java.io.Serializable
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
+import com.omega_r.libs.omegatypes.tools.TypefaceSpanCompat
 
 /**
  * Created by Anton Knyazev on 25.04.2019.

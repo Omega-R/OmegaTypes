@@ -1,4 +1,4 @@
-package com.omega_r.libs.omegatypes.picasso;
+package com.omega_r.libs.omegatypes.glide;
 
 import org.junit.Test;
 
