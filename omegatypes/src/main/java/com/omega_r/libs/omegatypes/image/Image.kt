@@ -153,6 +153,14 @@ fun ImageView.setImage(image: Image?, placeholderResId: Int = Image.NO_PLACEHOLD
 }
 
 @JvmOverloads
+fun Image.preload(context: Context, processor: ImageProcessors = ImageProcessors.current) {
+    return with(processor) {
+        this@preload.preload(context)
+    }
+}
+
+
+@JvmOverloads
 fun View.setBackground(image: Image?, placeholderResId: Int = Image.NO_PLACEHOLDER_RES, processor: ImageProcessors = ImageProcessors.current) {
     with(processor) {
         if (image != null) {
