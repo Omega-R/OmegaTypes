@@ -1,1 +1,2 @@
 include ':app', ':omegatypes', ':picasso', ':glide', ':imageviews', ":googledrive"
+include ':attrs'
