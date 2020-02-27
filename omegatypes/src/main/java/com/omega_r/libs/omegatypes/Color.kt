@@ -73,7 +73,7 @@ abstract class Color : Serializable {
         fun fromArgb(alpha: Int, red: Int, green: Int, blue: Int): Color = IntColor(GraphicColor.argb(alpha, red, green, blue))
 
         @JvmStatic
-        fun fromString(colorString: String): Color = IntColor(GraphicColor.parseColor(colorString))
+        fun fromString(colorString: String): Color = HexStringColor(colorString)
 
         @JvmStatic
         fun fromColorList(colorStateList: ColorStateList): Color = ColorStateListColor(colorStateList)
@@ -81,6 +81,12 @@ abstract class Color : Serializable {
     }
 
     class IntColor(private val colorInt: Int) : Color() {
+        override fun getColorInt(context: Context) = colorInt
+    }
+
+    class HexStringColor(val hexString: String) : Color() {
+        private val colorInt: Int = GraphicColor.parseColor(hexString)
+
         override fun getColorInt(context: Context) = colorInt
     }
 
