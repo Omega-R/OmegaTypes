@@ -8,13 +8,10 @@ import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
-import com.omega_r.libs.omegatypes.Color
-import com.omega_r.libs.omegatypes.Text
-import com.omega_r.libs.omegatypes.TextStyle
+import com.omega_r.libs.omegatypes.*
 import com.omega_r.libs.omegatypes.file.File
 import com.omega_r.libs.omegatypes.file.from
 import com.omega_r.libs.omegatypes.image.*
-import com.omega_r.libs.omegatypes.join
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,16 +28,20 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
-        val text = Text.from("test ") +
-                Text.from(
+        val text = TextBuilder()
+                .append(Text.empty())
+                .append(Text.from("test "))
+                .append(Text.from(
                         R.string.hello_world,
                         Text.from(R.string.app_name),
                         textStyle = TextStyle.font(ResourcesCompat.getFont(this, R.font.noto_sans_regular)!!)
-                ) +
-                Text.from(
+                ))
+                .append(Text.from(
                         "   SEMI BOLD",
                         textStyle = TextStyle.font(ResourcesCompat.getFont(this, R.font.noto_sans_semi_bold)!!)
-                )
+                ))
+                .toText()
+
         text.applyTo(exampleTextView) // or exampleTextView.setText(text)
 
         val list = listOf(Text.from("1", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))), Text.from("2", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))), Text.from("3"))

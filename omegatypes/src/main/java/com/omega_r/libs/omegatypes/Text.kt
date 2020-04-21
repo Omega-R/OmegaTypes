@@ -297,7 +297,9 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             val stringBuilder = SpannableStringBuilder()
             val newTextStyle = defaultTextStyle + textStyle
             for (text in texts) {
-                stringBuilder.append(text.getCharSequence(context, newTextStyle))
+                text.getCharSequence(context, newTextStyle)?.let { textCharSequence ->
+                    stringBuilder.append(textCharSequence)
+                }
             }
             return stringBuilder
         }

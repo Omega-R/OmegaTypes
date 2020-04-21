@@ -48,6 +48,15 @@ class TextBuilder(capacity: Int) : Serializable {
         return Text.from(list)
     }
 
+    fun isEmpty(): Boolean {
+        for (text in list) {
+            if (!text.isEmpty()) {
+                return false
+            }
+        }
+        return true
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
