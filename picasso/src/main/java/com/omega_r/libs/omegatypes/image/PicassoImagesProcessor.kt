@@ -55,7 +55,7 @@ class PicassoImagesProcessor(
         }
     }
 
-    override fun Image.applyImage(imageView: ImageView, placeholderResId: Int) {
+    override fun Image.applyImage(imageView: ImageView, placeholderResId: Int, onImageApplied: (() -> Unit)?) {
         createRequestCreator()?.apply {
             if (placeholderResId != NO_PLACEHOLDER_RES) placeholder(placeholderResId)
             fit()
@@ -69,6 +69,7 @@ class PicassoImagesProcessor(
         } ?: with(oldImagesProcessor) {
             applyImage(imageView, placeholderResId)
         }
+        onImageApplied?.invoke()
     }
 
     override fun Image.applyBackground(view: View, placeholderResId: Int) {
