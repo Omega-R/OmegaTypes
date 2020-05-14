@@ -18,8 +18,8 @@ import kotlin.reflect.KClass
 /**
  * Created by Anton Knyazev on 2019-10-03.
  */
-class GlideImagesProcessor(
-        private val oldImagesProcessor: ImageProcessors,
+open class GlideImagesProcessor(
+        protected val oldImagesProcessor: ImageProcessors,
         vararg excludeImageClasses: KClass<out Image>
 ) : ImageProcessors() {
 
@@ -37,7 +37,7 @@ class GlideImagesProcessor(
 
     private val excludeImageClasses = listOf(*excludeImageClasses)
 
-    private fun <T> RequestBuilder<T>.createRequestBuilder(image: Image): RequestBuilder<T>? {
+    protected fun <T> RequestBuilder<T>.createRequestBuilder(image: Image): RequestBuilder<T>? {
         if (excludeImageClasses.contains(image::class)) {
             return null
         }
@@ -110,11 +110,11 @@ class GlideImagesProcessor(
                 ?: applyOld { preload(context) }
     }
 
-    private fun <T> RequestBuilder<T>.applyPlaceholder(placeholderResId: Int): RequestBuilder<T> {
+    protected fun <T> RequestBuilder<T>.applyPlaceholder(placeholderResId: Int): RequestBuilder<T> {
         return if (placeholderResId != NO_PLACEHOLDER_RES) placeholder(placeholderResId) else this
     }
 
-    private inline fun <R> applyOld(block: ImageProcessors.() -> R): R {
+    protected inline fun <R> applyOld(block: ImageProcessors.() -> R): R {
         return block(oldImagesProcessor)
     }
 }
