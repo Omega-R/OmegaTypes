@@ -27,7 +27,7 @@ abstract class ImageProcessors : CoroutineScope {
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Default
 
-    abstract fun Image.applyImage(imageView: ImageView, placeholderResId: Int)
+    abstract fun Image.applyImage(imageView: ImageView, placeholderResId: Int, onImageApplied: (() -> Unit)? = null)
 
     abstract fun Image.applyBackground(view: View, placeholderResId: Int)
 
@@ -43,8 +43,9 @@ abstract class ImageProcessors : CoroutineScope {
             map[imageClass] = imageProcessor
         }
 
-        override fun Image.applyImage(imageView: ImageView, placeholderResId: Int) = with(getImageProcessor()) {
+        override fun Image.applyImage(imageView: ImageView, placeholderResId: Int, onImageApplied: (() -> Unit)?): Unit = with(getImageProcessor()) {
             applyImage(imageView, placeholderResId)
+            onImageApplied?.invoke()
         }
 
         override fun Image.applyBackground(view: View, placeholderResId: Int) = with(getImageProcessor()) {

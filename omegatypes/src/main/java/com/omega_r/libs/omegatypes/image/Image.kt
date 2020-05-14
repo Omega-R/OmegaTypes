@@ -138,16 +138,22 @@ suspend fun Image.getStream(
 }
 
 @JvmOverloads
-fun ImageView.setImage(image: Image?, placeholderResId: Int = Image.NO_PLACEHOLDER_RES, processor: ImageProcessors = ImageProcessors.current) {
+fun ImageView.setImage(
+        image: Image?,
+        placeholderResId: Int = Image.NO_PLACEHOLDER_RES,
+        processor: ImageProcessors = ImageProcessors.current,
+        onImageApplied: (() -> Unit)? = null
+) {
     with(processor) {
         if (image != null) {
-            image.applyImage(this@setImage, placeholderResId)
+            image.applyImage(this@setImage, placeholderResId, onImageApplied)
         } else {
             if (placeholderResId == 0) {
                 setImageDrawable(null)
             } else {
                 setImageResource(placeholderResId)
             }
+            onImageApplied?.invoke()
         }
     }
 }

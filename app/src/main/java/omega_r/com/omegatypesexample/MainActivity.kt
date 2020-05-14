@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
@@ -75,7 +76,9 @@ class MainActivity : BaseActivity() {
 //            image
 //        }
 
-        imageView.setImage(image)
+        imageView.setImage(image, processor = GlideImagesProcessor(ImageProcessors.current), onImageApplied = {
+            Log.d("TAG","onImageApplied")
+        })
 
 
 
