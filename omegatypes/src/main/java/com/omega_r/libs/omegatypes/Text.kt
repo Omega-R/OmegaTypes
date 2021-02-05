@@ -2,10 +2,15 @@ package com.omega_r.libs.omegatypes
 
 import android.app.Activity
 import android.content.Context
+import android.text.Html
+import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import java.io.IOException
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.util.*
 
@@ -136,8 +141,13 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
 
     private class CharSequenceText internal constructor(
-            private val charSequence: CharSequence,
+            private var charSequence: CharSequence,
             textStyle: TextStyle?) : Text(textStyle) {
+
+        companion object {
+            private const val TYPE_SPANNABLE = 0.toByte()
+            private const val TYPE_STRING = 1.toByte()
+        }
 
         override fun isEmpty(): Boolean = charSequence.isEmpty()
 
@@ -147,6 +157,34 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence? {
             return (defaultTextStyle + textStyle)?.applyStyle(context, charSequence) ?: charSequence
+        }
+
+        @Throws(IOException::class)
+        private fun writeObject(stream: ObjectOutputStream) {
+            charSequence.let { charSequence->
+                when (charSequence) {
+                    is SpannableString -> {
+                        stream.writeByte(TYPE_SPANNABLE.toInt())
+                        stream.writeObject(Html.toHtml(charSequence))
+                    }
+                    is String -> {
+                        stream.writeByte(TYPE_STRING.toInt())
+                        stream.writeUTF(charSequence)
+                    }
+                    else -> {
+                        throw IOException("Unknown type " + charSequence::class.simpleName)
+                    }
+                }
+            }
+        }
+
+        @Throws(IOException::class, ClassNotFoundException::class)
+        private fun readObject(stream: ObjectInputStream) {
+            charSequence = when (val type = stream.readByte()) {
+                TYPE_SPANNABLE -> SpannableString(Html.fromHtml(stream.readObject() as String))
+                TYPE_STRING -> stream.readObject() as String
+                else -> throw IOException("Unknown type = $type")
+            }
         }
 
         override fun equals(other: Any?): Boolean {
