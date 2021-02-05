@@ -17,7 +17,7 @@ data class UrlImage(val baseUrl: String? = null, val relativeUrl: String) : Base
     companion object {
         private val PATTERN_ABSOLUTE_URL = Pattern.compile("\\A[a-z0-9.+-]+://.*", Pattern.CASE_INSENSITIVE)
 
-        var defaultBaseUrl : String? = null
+        var defaultBaseUrl: String? = null
 
         init {
             ImageProcessors.default.addImageProcessor(UrlImage::class, Processor())
@@ -29,9 +29,13 @@ data class UrlImage(val baseUrl: String? = null, val relativeUrl: String) : Base
 
 
     val url: String
-        get() = if (relativeUrl.isAbsoluteUrl()) relativeUrl else (baseUrl ?: defaultBaseUrl ?: "") + relativeUrl
+        get() = if (relativeUrl.isAbsoluteUrl()) relativeUrl else {
+            val baseUrl = (baseUrl ?: defaultBaseUrl ?: "").removeSuffix("/")
+            val relativeUrl = relativeUrl.removePrefix("/")
+            "$baseUrl/$relativeUrl"
+        }
 
-    constructor(url: String): this(null, url)
+    constructor(url: String) : this(null, url)
 
     class Processor : BaseBitmapImage.Processor<UrlImage>(true) {
 
