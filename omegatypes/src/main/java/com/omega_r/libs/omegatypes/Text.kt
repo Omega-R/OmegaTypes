@@ -5,6 +5,7 @@ import android.content.Context
 import android.text.Html
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -145,7 +146,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             textStyle: TextStyle?) : Text(textStyle) {
 
         companion object {
-            private const val TYPE_SPANNABLE = 0.toByte()
+            private const val TYPE_SPANNED = 0.toByte()
             private const val TYPE_STRING = 1.toByte()
         }
 
@@ -163,8 +164,8 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
         private fun writeObject(stream: ObjectOutputStream) {
             charSequence.let { charSequence->
                 when (charSequence) {
-                    is SpannableString -> {
-                        stream.writeByte(TYPE_SPANNABLE.toInt())
+                    is Spanned -> {
+                        stream.writeByte(TYPE_SPANNED.toInt())
                         stream.writeObject(Html.toHtml(charSequence))
                     }
                     is String -> {
@@ -181,8 +182,8 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
         @Throws(IOException::class, ClassNotFoundException::class)
         private fun readObject(stream: ObjectInputStream) {
             charSequence = when (val type = stream.readByte()) {
-                TYPE_SPANNABLE -> SpannableString(Html.fromHtml(stream.readObject() as String))
-                TYPE_STRING -> stream.readObject() as String
+                TYPE_SPANNED -> Html.fromHtml(stream.readObject() as String)
+                TYPE_STRING -> stream.readUTF()
                 else -> throw IOException("Unknown type = $type")
             }
         }
