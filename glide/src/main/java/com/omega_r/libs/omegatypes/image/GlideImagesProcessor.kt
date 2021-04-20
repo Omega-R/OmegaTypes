@@ -3,11 +3,16 @@ package com.omega_r.libs.omegatypes.image
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.CustomViewTarget
+import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
 import com.omega_r.libs.omegatypes.decoders.BitmapDecoders
 import com.omega_r.libs.omegatypes.decoders.SimpleBitmapDecoders
@@ -18,8 +23,8 @@ import kotlin.reflect.KClass
 /**
  * Created by Anton Knyazev on 2019-10-03.
  */
-class GlideImagesProcessor(
-        private val oldImagesProcessor: ImageProcessors,
+open class GlideImagesProcessor(
+        protected val oldImagesProcessor: ImageProcessors,
         vararg excludeImageClasses: KClass<out Image>
 ) : ImageProcessors() {
 
@@ -37,7 +42,7 @@ class GlideImagesProcessor(
 
     private val excludeImageClasses = listOf(*excludeImageClasses)
 
-    private fun <T> RequestBuilder<T>.createRequestBuilder(image: Image): RequestBuilder<T>? {
+    protected fun <T> RequestBuilder<T>.createRequestBuilder(image: Image): RequestBuilder<T>? {
         if (excludeImageClasses.contains(image::class)) {
             return null
         }
@@ -53,11 +58,12 @@ class GlideImagesProcessor(
         }
     }
 
-    override fun Image.applyImage(imageView: ImageView, placeholderResId: Int) {
+    override fun Image.applyImage(imageView: ImageView, placeholderResId: Int, onImageApplied: (() -> Unit)?) {
         Glide.with(imageView)
                 .asDrawable()
                 .createRequestBuilder(this)
                 ?.applyPlaceholder(placeholderResId)
+                ?.listener(GlideImageRequestListener(onImageApplied))
                 ?.into(imageView)
                 ?: applyOld { applyImage(imageView, placeholderResId) }
     }
@@ -110,11 +116,45 @@ class GlideImagesProcessor(
                 ?: applyOld { preload(context) }
     }
 
-    private fun <T> RequestBuilder<T>.applyPlaceholder(placeholderResId: Int): RequestBuilder<T> {
+    protected fun <T> RequestBuilder<T>.applyPlaceholder(placeholderResId: Int): RequestBuilder<T> {
         return if (placeholderResId != NO_PLACEHOLDER_RES) placeholder(placeholderResId) else this
     }
 
-    private inline fun <R> applyOld(block: ImageProcessors.() -> R): R {
+    protected inline fun <R> applyOld(block: ImageProcessors.() -> R): R {
         return block(oldImagesProcessor)
+    }
+}
+
+class GlideImageRequestListener(private val onImageLoaded: (() -> Unit)?) : RequestListener<Drawable> {
+
+    companion object {
+        private val TAG = GlideImageRequestListener::class.java.name
+    }
+
+    override fun onLoadFailed(
+            e: GlideException?,
+            model: Any?,
+            target: Target<Drawable>?,
+            isFirstResource: Boolean
+    ): Boolean {
+        Log.e(TAG, "Image load failed: ", e)
+        if (isFirstResource) {
+            onImageLoaded?.invoke()
+        }
+        return false
+    }
+
+    override fun onResourceReady(
+            resource: Drawable,
+            model: Any?,
+            target: Target<Drawable>,
+            dataSource: DataSource,
+            isFirstResource: Boolean
+    ): Boolean {
+        target.onResourceReady(resource, null)
+        if (isFirstResource) {
+            onImageLoaded?.invoke()
+        }
+        return true
     }
 }

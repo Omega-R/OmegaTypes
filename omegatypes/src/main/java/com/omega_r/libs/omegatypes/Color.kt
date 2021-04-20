@@ -3,9 +3,11 @@ package com.omega_r.libs.omegatypes
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Resources
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.util.SparseIntArray
 import android.util.TypedValue
+import android.view.View
 import android.widget.TextView
 import java.io.Serializable
 import java.util.*
@@ -179,4 +181,11 @@ var TextView.linkTextColor: Color
     get() = Color.fromColorList(linkTextColors)
     set(value) {
         setLinkTextColor(value.getColorStateList(context))
+    }
+
+var View.backgroundColor: Color?
+    get() = (background as? ColorDrawable)?.color?.let { Color.fromInt(it) }
+    set(value) {
+        value?.let { setBackgroundColor(it.getColorInt(context)) }
+                ?: setBackgroundDrawable(null)
     }
