@@ -213,6 +213,12 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         override fun isEmpty(): Boolean = stringRes <= 0
 
+        override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence? {
+            return context.getText(stringRes).let {
+                (defaultTextStyle + textStyle)?.applyStyle(context, it) ?: it
+            }
+        }
+
         override fun getString(context: Context): String {
             return context.getString(stringRes)
         }
