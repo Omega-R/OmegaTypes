@@ -9,6 +9,7 @@ import android.text.Spanned
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import com.omega_r.libs.omegatypes.image.Image
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -59,6 +60,9 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
         @JvmStatic
         @JvmOverloads
         fun from(texts: List<Text>, textStyle: TextStyle? = null): Text = ArrayText(*texts.toTypedArray(), textStyle = textStyle)
+
+        @JvmStatic
+        fun from(image: Image): Text = ImageText(image)
 
     }
 

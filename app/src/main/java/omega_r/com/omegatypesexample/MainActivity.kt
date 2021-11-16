@@ -1,18 +1,22 @@
 package omega_r.com.omegatypesexample
 
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
+import android.text.Html
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.text.HtmlCompat
 import com.omega_r.libs.omegatypes.*
 import com.omega_r.libs.omegatypes.file.File
 import com.omega_r.libs.omegatypes.file.from
 import com.omega_r.libs.omegatypes.image.*
+import com.omega_r.libs.omegatypes.image.Image.Companion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,8 +34,10 @@ class MainActivity : BaseActivity() {
 
         setContentView(R.layout.activity_main)
         val text = TextBuilder()
+                .append(addText)
                 .append(Text.empty())
                 .append(Text.from("test "))
+                .append(Text.from(Image.from(R.drawable.ic_test)))
                 .append(Text.from(
                         R.string.hello_world,
                         Text.from(R.string.app_name),
