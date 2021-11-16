@@ -94,6 +94,8 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
         return TextBuilder.BuilderText(this) + string
     }
 
+    open operator fun plus(image: Image): Text = this + from(image)
+
     operator fun plus(textStyle: TextStyle?): Text {
         return textStyle?.let { from(this, textStyle = textStyle) } ?: this
     }
@@ -445,6 +447,7 @@ operator fun Text?.plus(string: String?): Text? {
 operator fun Text?.plus(textStyle: TextStyle?): Text? {
     return this?.let { this + textStyle }
 }
+
 
 fun List<Textable>.join(separator: String = ", ", prefix: String = "", postfix: String = "", limit: Int = -1, truncated: String = "..."): Text {
     var buffer = if (prefix.isNotEmpty()) Text.from(prefix) else Text.from()
