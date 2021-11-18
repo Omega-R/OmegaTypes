@@ -274,22 +274,20 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence? {
             val text = context.getText(stringRes)
-            if (text is Spanned) {
+            return if (text is Spanned || formatArgs.firstOrNull { it is Text || it is Image } != null) {
                 var args: Array<out Any?> = formatArgs
-                if (formatArgs.firstOrNull { it is Text || it is Image } != null) {
-                    val list = formatArgs.map {
-                        when (it) {
-                            is Text -> it.getCharSequence(context, textStyle)
-                            is Image -> from(it).getCharSequence(context)
-                            else -> it
-                        }
+                val list = formatArgs.map {
+                    when (it) {
+                        is Text -> it.getCharSequence(context, textStyle)
+                        is Image -> from(it).getCharSequence(context)
+                        else -> it
                     }
-                    args = list.toTypedArray()
                 }
 
-                return context.getText(context.getLocale(), stringRes, *args)
+                args = list.toTypedArray()
+                context.getText(context.getLocale(), stringRes, *args)
             } else {
-                return String.format(context.getLocale(), text.toString(), *formatArgs)
+                String.format(context.getLocale(), text.toString(), *formatArgs)
             }
         }
 
