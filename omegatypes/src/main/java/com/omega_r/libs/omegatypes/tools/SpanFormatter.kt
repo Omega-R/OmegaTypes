@@ -105,3 +105,7 @@ object SpanFormatter {
 fun Context.getText(resId: Int, vararg formatArgs: Any?): CharSequence {
     return SpanFormatter.format(getText(resId), args = *formatArgs)
 }
+
+fun Context.getText(locale: Locale, resId: Int, vararg formatArgs: Any?): CharSequence {
+    return SpanFormatter.format(locale, getText(resId), args = *formatArgs)
+}

@@ -2,13 +2,17 @@ package com.omega_r.libs.omegatypes
 
 import android.app.Activity
 import android.content.Context
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
 import android.text.Html
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.SpannedString
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.omega_r.libs.omegatypes.image.Image
+import com.omega_r.libs.omegatypes.tools.SpanFormatter
 import com.omega_r.libs.omegatypes.tools.getText
 import java.io.IOException
 import java.io.ObjectInputStream
@@ -18,8 +22,8 @@ import java.util.*
 
 open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Textable {
 
-
     companion object {
+
         @JvmStatic
         fun empty(): Text = Text(null)
 
@@ -27,10 +31,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
         @JvmOverloads
         fun from(string: String, textStyle: TextStyle? = null): Text = StringText(string, textStyle)
 
-
         @JvmStatic
         @JvmOverloads
-        fun from(charSequence: CharSequence, textStyle: TextStyle? = null): Text = CharSequenceText(charSequence, textStyle)
+        fun from(charSequence: CharSequence, textStyle: TextStyle? = null): Text =
+            CharSequenceText(charSequence, textStyle)
 
         @JvmStatic
         @JvmOverloads
@@ -38,15 +42,18 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         @JvmStatic
         @JvmOverloads
-        fun from(stringRes: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text = FormatResourceText(stringRes, *formatArgs, textStyle = textStyle)
+        fun from(stringRes: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text =
+            FormatResourceText(stringRes, *formatArgs, textStyle = textStyle)
 
         @JvmStatic
         @JvmOverloads
-        fun fromPlurals(stringRes: Int, quantity: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text = PluralsText(stringRes, quantity, *formatArgs, textStyle = textStyle)
+        fun fromPlurals(stringRes: Int, quantity: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text =
+            PluralsText(stringRes, quantity, *formatArgs, textStyle = textStyle)
 
         @JvmStatic
         @JvmOverloads
-        fun from(stringHolder: StringHolder, textStyle: TextStyle? = null): Text = stringHolder.getStringText()?.let { from(it, textStyle) }
+        fun from(stringHolder: StringHolder, textStyle: TextStyle? = null): Text =
+            stringHolder.getStringText()?.let { from(it, textStyle) }
                 ?: empty()
 
         @JvmStatic
@@ -59,11 +66,11 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         @JvmStatic
         @JvmOverloads
-        fun from(texts: List<Text>, textStyle: TextStyle? = null): Text = ArrayText(*texts.toTypedArray(), textStyle = textStyle)
+        fun from(texts: List<Text>, textStyle: TextStyle? = null): Text =
+            ArrayText(*texts.toTypedArray(), textStyle = textStyle)
 
         @JvmStatic
         fun from(image: Image): Text = ImageText(image)
-
     }
 
     open fun isEmpty(): Boolean = true
@@ -117,10 +124,9 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
         return 31 * 17
     }
 
-
     private class StringText internal constructor(
-            private val string: String?,
-            textStyle: TextStyle?
+        private val string: String?,
+        textStyle: TextStyle?
     ) : Text(textStyle) {
 
         override fun isEmpty(): Boolean = string.isNullOrEmpty()
@@ -143,15 +149,15 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             result = 31 * result + (string?.hashCode() ?: 0)
             return result
         }
-
     }
 
-
     private class CharSequenceText internal constructor(
-            private var charSequence: CharSequence,
-            textStyle: TextStyle?) : Text(textStyle) {
+        private var charSequence: CharSequence,
+        textStyle: TextStyle?
+    ) : Text(textStyle) {
 
         companion object {
+
             private const val TYPE_SPANNED = 0.toByte()
             private const val TYPE_STRING = 1.toByte()
         }
@@ -168,7 +174,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         @Throws(IOException::class)
         private fun writeObject(stream: ObjectOutputStream) {
-            charSequence.let { charSequence->
+            charSequence.let { charSequence ->
                 when (charSequence) {
                     is Spanned -> {
                         stream.writeByte(TYPE_SPANNED.toInt())
@@ -208,12 +214,11 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             result = 31 * result + charSequence.hashCode()
             return result
         }
-
     }
 
     private class ResourceText internal constructor(
-            private val stringRes: Int,
-            textStyle: TextStyle?
+        private val stringRes: Int,
+        textStyle: TextStyle?
 
     ) : Text(textStyle) {
 
@@ -243,12 +248,13 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             result = 31 * result + stringRes
             return result
         }
-
     }
 
-    private class FormatResourceText internal constructor(private val stringRes: Int,
-                                                          private vararg val formatArgs: Any,
-                                                          textStyle: TextStyle?) : Text(textStyle) {
+    private class FormatResourceText internal constructor(
+        private val stringRes: Int,
+        private vararg val formatArgs: Any,
+        textStyle: TextStyle?
+    ) : Text(textStyle) {
 
         override fun isEmpty(): Boolean = stringRes <= 0
 
@@ -267,18 +273,32 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
         }
 
         override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence? {
-            if (formatArgs.firstOrNull { it is Text } != null) {
-                val list = formatArgs.map {
-                    when (it) {
-                        is Text -> it.getCharSequence(context, textStyle)
-                        is Image -> from(it).getCharSequence(context)
-                        else -> it
+            val text = context.getText(stringRes)
+            if (text is Spanned) {
+                var args: Array<out Any?> = formatArgs
+                if (formatArgs.firstOrNull { it is Text || it is Image } != null) {
+                    val list = formatArgs.map {
+                        when (it) {
+                            is Text -> it.getCharSequence(context, textStyle)
+                            is Image -> from(it).getCharSequence(context)
+                            else -> it
+                        }
                     }
+                    args = list.toTypedArray()
                 }
-                return context.getText(stringRes, formatArgs = *list.toTypedArray())
-            }
 
-            return context.getText(stringRes, *formatArgs)
+                return context.getText(context.getLocale(), stringRes, *args)
+            } else {
+                return String.format(context.getLocale(), text.toString(), *formatArgs)
+            }
+        }
+
+        private fun Context.getLocale(): Locale {
+            return if (VERSION.SDK_INT >= VERSION_CODES.N) {
+                resources.configuration.locales.get(0)
+            } else {
+                resources.configuration.locale
+            }
         }
 
         override fun equals(other: Any?): Boolean {
@@ -295,14 +315,13 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             result = 31 * result + Arrays.hashCode(formatArgs)
             return result
         }
-
     }
 
     class PluralsText internal constructor(
-            private val res: Int,
-            private val quantity: Int,
-            private vararg val formatArgs: Any,
-            textStyle: TextStyle? = null
+        private val res: Int,
+        private val quantity: Int,
+        private vararg val formatArgs: Any,
+        textStyle: TextStyle? = null
     ) : Text(textStyle) {
 
         override fun isEmpty(): Boolean = res <= 0
@@ -332,13 +351,11 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             result = 31 * result + formatArgs.contentHashCode()
             return result
         }
-
-
     }
 
     private class ArrayText internal constructor(
-            private vararg val texts: Text,
-            textStyle: TextStyle?
+        private vararg val texts: Text,
+        textStyle: TextStyle?
     ) : Text(textStyle) {
 
         override fun isEmpty(): Boolean {
@@ -387,25 +404,18 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             result = 31 * result + texts.contentHashCode()
             return result
         }
-
-
     }
 
     interface StringHolder {
 
         fun getStringText(): String?
-
     }
-
-
 }
 
 interface Textable {
 
     fun toText(): Text
-
 }
-
 
 fun TextView.setText(text: Text?, textStyle: TextStyle? = null) {
     if (text == null) {
@@ -463,8 +473,13 @@ operator fun Text?.plus(textStyle: TextStyle?): Text? {
     return this?.let { this + textStyle }
 }
 
-
-fun List<Textable>.join(separator: String = ", ", prefix: String = "", postfix: String = "", limit: Int = -1, truncated: String = "..."): Text {
+fun List<Textable>.join(
+    separator: String = ", ",
+    prefix: String = "",
+    postfix: String = "",
+    limit: Int = -1,
+    truncated: String = "..."
+): Text {
     var buffer = if (prefix.isNotEmpty()) Text.from(prefix) else Text.from()
 
     var count = 0
