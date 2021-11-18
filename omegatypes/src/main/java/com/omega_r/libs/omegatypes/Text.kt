@@ -3,13 +3,13 @@ package com.omega_r.libs.omegatypes
 import android.app.Activity
 import android.content.Context
 import android.text.Html
-import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import com.omega_r.libs.omegatypes.image.Image
+import com.omega_r.libs.omegatypes.tools.getText
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -264,6 +264,21 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             }
 
             return context.getString(stringRes, *formatArgs)
+        }
+
+        override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence? {
+            if (formatArgs.firstOrNull { it is Text } != null) {
+                val list = formatArgs.map {
+                    when (it) {
+                        is Text -> it.getCharSequence(context, textStyle)
+                        is Image -> from(it).getCharSequence(context)
+                        else -> it
+                    }
+                }
+                return context.getText(stringRes, formatArgs = *list.toTypedArray())
+            }
+
+            return context.getText(stringRes, *formatArgs)
         }
 
         override fun equals(other: Any?): Boolean {

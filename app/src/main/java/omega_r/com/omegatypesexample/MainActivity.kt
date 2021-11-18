@@ -1,6 +1,5 @@
 package omega_r.com.omegatypesexample
 
-
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -23,8 +22,12 @@ import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import kotlin.concurrent.thread
 
-
 class MainActivity : BaseActivity() {
+
+    companion object {
+
+        var test = 0
+    }
 
     private val exampleTextView by bind<TextView>(R.id.textview)
     private val imageView by bind<ImageView>(R.id.imageview)
@@ -32,32 +35,52 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val addText = if (test % 2 == 0) {
+            test++
+            val intent = Intent(this, this::class.java).putExtra("Text", Text.from(Html.fromHtml("<b>sdf</b>")))
+            startActivity(intent)
+            Text.from("")
+        } else {
+            test++
+
+            intent.getSerializableExtra("Text") as? Text ?: Text.from("No")
+        }
+
         setContentView(R.layout.activity_main)
         val text = TextBuilder()
-                .append(addText)
-                .append(Text.empty())
-                .append(Text.from("test "))
-                .append(Text.from(Image.from(R.drawable.ic_test)))
-                .append(Text.from(
-                        R.string.hello_world,
-                        Text.from(R.string.app_name),
-                        textStyle = TextStyle.font(ResourcesCompat.getFont(this, R.font.noto_sans_regular)!!)
-                ))
-                .append(Text.from(
-                        "   SEMI BOLD",
-                        textStyle = TextStyle.font(ResourcesCompat.getFont(this, R.font.noto_sans_semi_bold)!!)
-                ))
-                .toText()
+            .append(addText)
+            .append(Text.empty())
+            .append(Text.from(R.string.text_format_test, "1-9"))
+
+            .append(Text.from("test "))
+            .append(Text.from(Image.from(R.drawable.ic_test)))
+            .append(
+                Text.from(
+                    R.string.hello_world,
+                    Text.from(R.string.app_name),
+                    textStyle = TextStyle.font(ResourcesCompat.getFont(this, R.font.noto_sans_regular)!!)
+                )
+            )
+            .append(
+                Text.from(
+                    "   SEMI BOLD",
+                    textStyle = TextStyle.font(ResourcesCompat.getFont(this, R.font.noto_sans_semi_bold)!!)
+                )
+            )
+            .toText()
 
         text.applyTo(exampleTextView) // or exampleTextView.setText(text)
 
-        val list = listOf(Text.from("1", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))), Text.from("2", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))), Text.from("3"))
+        val list = listOf(
+            Text.from("1", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))),
+            Text.from("2", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))),
+            Text.from("3")
+        )
 
         title = list.join(",", postfix = ".").getCharSequence(this)
 
-
-        val image = Image.from("https://dejagerart.com/wp-content/uploads/2018/09/Test-Logo-Circle-black-transparent.png")
-
+        val image =
+            Image.from("https://dejagerart.com/wp-content/uploads/2018/09/Test-Logo-Circle-black-transparent.png")
 
 //        val image = intent.getSerializableExtra("test") as? Image ?: run {
 //
@@ -83,10 +106,8 @@ class MainActivity : BaseActivity() {
 //        }
 
         imageView.setImage(image, processor = GlideImagesProcessor(ImageProcessors.current), onImageApplied = {
-            Log.d("TAG","onImageApplied")
+            Log.d("TAG", "onImageApplied")
         })
-
-
 
 //        thread {
 //            val stream = image.getStream(this, Bitmap.CompressFormat.PNG)
@@ -96,7 +117,5 @@ class MainActivity : BaseActivity() {
 //            }
 //
 //        }
-
     }
-
 }
