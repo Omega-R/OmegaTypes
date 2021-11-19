@@ -7,6 +7,7 @@ import android.util.SparseArray
 import android.util.SparseIntArray
 import android.util.TypedValue
 import android.util.TypedValue.*
+import android.view.ViewGroup.LayoutParams
 import android.widget.TextView
 import java.io.Serializable
 import java.util.*
@@ -22,11 +23,16 @@ abstract class Size : Serializable {
         fun from(size: Float, unit: Unit): Size = SimpleSize(size, unit)
 
         @JvmStatic
+        fun from(size: Int, unit: Unit): Size = from(size.toFloat(), unit)
+
+        @JvmStatic
+        fun from(size: Double, unit: Unit): Size = from(size.toFloat(), unit)
+
+        @JvmStatic
         fun from(dimensionRes: Int): Size = DimensionResourceSize(dimensionRes)
 
         @JvmStatic
         fun fromAttribute(dimensionAttr: Int): Size = AttrThemeSize(dimensionAttr)
-
     }
 
     abstract fun getSize(context: Context, unit: Unit): Float
@@ -50,7 +56,7 @@ abstract class Size : Serializable {
         return -1
     }
 
-    protected fun getFactor(displayMetrics: DisplayMetrics, unit: Unit): Float {
+    private fun getFactor(displayMetrics: DisplayMetrics, unit: Unit): Float {
         return displayMetrics.run {
             when (unit) {
                 Unit.PX -> 1.0f
@@ -63,16 +69,9 @@ abstract class Size : Serializable {
         }
     }
 
-    protected fun getFactor(displayMetrics: DisplayMetrics, oldUnit: Unit, newUnit: Unit): Float {
-        if (oldUnit == newUnit) {
-            return 1f
-        }
-        return getFactor(displayMetrics, newUnit) / getFactor(displayMetrics, oldUnit)
-    }
-
-    protected fun getFactor(context: Context, oldUnit: Unit, newUnit: Unit): Float {
+    private fun getFactor(context: Context, oldUnit: Unit, newUnit: Unit): Float {
         return context.resources.displayMetrics.run {
-            getFactor(this, newUnit) / getFactor(this, oldUnit)
+            getFactor(this, oldUnit) / getFactor(this, newUnit)
         }
     }
 
@@ -94,9 +93,7 @@ abstract class Size : Serializable {
             fun from(typedValueUnit: Int): Unit? {
                 return values().firstOrNull { typedValueUnit == it.typedValueUnit }
             }
-
         }
-
     }
 
     private class SimpleSize(private val size: Float, private val unit: Unit) : Size() {
@@ -110,12 +107,9 @@ abstract class Size : Serializable {
 
     private class DimensionResourceSize(private val sizeRes: Int) : Size() {
 
-        override fun getSize(context: Context, unit: Unit) = context.resources.run {
-            getRawSize(context).applyFactor(context, Unit.PX, unit)
-        }
+        override fun getSize(context: Context, unit: Unit) = getRawSize(context).applyFactor(context, Unit.PX, unit)
 
         override fun getRawSize(context: Context) = context.resources.getDimension(sizeRes)
-
     }
 
     class AttrThemeSize(private val attrInt: Int) : Size() {
@@ -123,12 +117,10 @@ abstract class Size : Serializable {
         companion object {
 
             private val cache = WeakHashMap<Resources.Theme, SparseArray<Float>>()
-
         }
 
-        override fun getSize(context: Context, unit: Unit): Float = context.resources.run {
+        override fun getSize(context: Context, unit: Unit): Float =
             getRawSize(context).applyFactor(context, Unit.PX, unit)
-        }
 
         override fun getRawSize(context: Context): Float {
             val theme = context.theme
@@ -158,11 +150,35 @@ abstract class Size : Serializable {
                 if (theme.resolveAttribute(attrInt, this, true)) getDimension(metrics) else 0f
             }
         }
-
     }
-
 }
 
-fun TextView.setTextSize(size: Size) {
-    setTextSize(COMPLEX_UNIT_PX, size.getSize(context, Size.Unit.PX))
-}
+fun TextView.setTextSize(size: Size) = setTextSize(COMPLEX_UNIT_PX, size.getSize(context, Size.Unit.PX))
+
+
+val Int.px
+    get() = Size.from(toFloat(), Size.Unit.PX)
+
+val Float.px
+    get() = Size.from(this, Size.Unit.PX)
+
+val Double.px
+    get() = Size.from(toFloat(), Size.Unit.PX)
+
+val Int.dp
+    get() = Size.from(toFloat(), Size.Unit.DP)
+
+val Float.dp
+    get() = Size.from(this, Size.Unit.DP)
+
+val Double.dp
+    get() = Size.from(toFloat(), Size.Unit.DP)
+
+val Int.sp
+    get() = Size.from(toFloat(), Size.Unit.SP)
+
+val Float.sp
+    get() = Size.from(this, Size.Unit.SP)
+
+val Double.sp
+    get() = Size.from(toFloat(), Size.Unit.SP)
