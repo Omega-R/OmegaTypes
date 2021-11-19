@@ -40,12 +40,12 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         @JvmStatic
         @JvmOverloads
-        fun from(stringRes: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text =
+        fun from(stringRes: Int, vararg formatArgs: Serializable, textStyle: TextStyle? = null): Text =
             ResourceFormatText(stringRes, *formatArgs, textStyle = textStyle)
 
         @JvmStatic
         @JvmOverloads
-        fun fromPlurals(stringRes: Int, quantity: Int, vararg formatArgs: Any, textStyle: TextStyle? = null): Text =
+        fun fromPlurals(stringRes: Int, quantity: Int, vararg formatArgs: Serializable, textStyle: TextStyle? = null): Text =
             PluralsFormatText(stringRes, quantity, *formatArgs, textStyle = textStyle)
 
         @JvmStatic
@@ -248,7 +248,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
     }
 
     private abstract class FormatText(
-        protected vararg val formatArgs: Any,
+        protected vararg val formatArgs: Serializable,
         defaultTextStyle: TextStyle?
     ) : Text(defaultTextStyle) {
 
@@ -274,7 +274,6 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
         override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence {
             val text = getText(context)
             return if (text is Spanned || formatArgs.firstOrNull { it is Text || it is Image } != null) {
-                var args: Array<out Any?> = formatArgs
                 val list = formatArgs.map {
                     when (it) {
                         is Text -> it.getCharSequence(context)
@@ -283,8 +282,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
                     }
                 }
 
-                args = list.toTypedArray()
-                SpanFormatter.format(context.getLocale(), text, *args).let {
+                SpanFormatter.format(context.getLocale(), text, *list.toTypedArray()).let {
                     (defaultTextStyle + textStyle)?.applyStyle(context, it) ?: it
                 }
             } else {
@@ -305,7 +303,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
     private class ResourceFormatText constructor(
         private val stringRes: Int,
-        vararg formatArgs: Any,
+        vararg formatArgs: Serializable,
         textStyle: TextStyle?
     ) : FormatText(formatArgs = *formatArgs, defaultTextStyle = textStyle) {
 
@@ -333,7 +331,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
     private class PluralsFormatText constructor(
         private val res: Int,
         private val quantity: Int,
-        vararg formatArgs: Any,
+        vararg formatArgs: Serializable,
         textStyle: TextStyle? = null
     ) : FormatText(formatArgs = *formatArgs, defaultTextStyle = textStyle) {
 
