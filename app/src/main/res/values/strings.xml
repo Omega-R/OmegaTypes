@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">OmegaTypesExample</string>
+
+    <string name="text_format_test">%s - Not bold</string>
+
+    <string name="text_fomat_test2">Test2</string>
+
 </resources>
