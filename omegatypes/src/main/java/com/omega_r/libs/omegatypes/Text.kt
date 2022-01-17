@@ -133,6 +133,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             return string
         }
 
+        override fun toString(): String {
+            return string.toString()
+        }
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -168,6 +172,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence? {
             return (defaultTextStyle + textStyle)?.applyStyle(context, charSequence) ?: charSequence
+        }
+
+        override fun toString(): String {
+            return charSequence.toString()
         }
 
         @Throws(IOException::class)
@@ -231,6 +239,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             return context.getString(stringRes)
         }
 
+        override fun toString(): String {
+            return "ResourceText($stringRes)"
+        }
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -270,6 +282,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
             return String.format(context.getLocale(), string, *formatArgs)
         }
+
 
         override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence {
             val text = getText(context)
@@ -311,6 +324,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
 
         override fun getText(context: Context): CharSequence = context.getText(stringRes)
+
+        override fun toString(): String {
+            return "ResourceFormatText($stringRes, $formatArgs)"
+        }
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -359,6 +376,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             result = 31 * result + quantity
             result = 31 * result + formatArgs.contentHashCode()
             return result
+        }
+
+        override fun toString(): String {
+            return "PluralsFormatText(res=$res, quantity=$quantity, formatArgs=$formatArgs)"
         }
     }
 
@@ -412,6 +433,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             var result = super.hashCode()
             result = 31 * result + texts.contentHashCode()
             return result
+        }
+
+        override fun toString(): String {
+            return "ArrayText(texts=$texts)"
         }
     }
 

@@ -8,9 +8,6 @@ import com.omega_r.libs.omegatypes.file.File
 import com.omega_r.libs.omegatypes.file.FileSystems
 
 /**
- * Created by Anton Knyazev on 2019-10-07.
- */
-/**
  * Created by Anton Knyazev on 2019-10-03.
  */
 data class FileImage(val file: File) : BaseBitmapImage() {

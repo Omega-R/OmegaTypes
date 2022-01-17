@@ -2,6 +2,7 @@ package com.omega_r.libs.omegatypes
 
 import android.content.Context
 import android.content.res.Resources
+import com.omega_r.libs.omegatypes.image.Image
 import java.io.Serializable
 
 /**
@@ -26,6 +27,8 @@ class TextBuilder(capacity: Int) : Serializable {
         list += text
         return this
     }
+
+    fun append(image: Image): TextBuilder = append(Text.from(image))
 
     fun append(string: String) = append(Text.from(string))
 

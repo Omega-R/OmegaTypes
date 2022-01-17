@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.text.HtmlCompat
 import com.omega_r.libs.omegatypes.*
+import com.omega_r.libs.omegatypes.Size.Unit.SP
 import com.omega_r.libs.omegatypes.file.File
 import com.omega_r.libs.omegatypes.file.from
 import com.omega_r.libs.omegatypes.image.*
@@ -51,8 +52,8 @@ class MainActivity : BaseActivity() {
             .append(addText)
             .append(Text.empty())
             .append(Text.from(R.string.text_format_test, "1-9"))
-
-            .append(Text.from("test "))
+            .append(Text.from(" test Image -> "))
+//            .append(AssetImage("test.webp"))
             .append(Text.from(Image.from(R.drawable.ic_test)))
             .append(
                 Text.from(
@@ -71,6 +72,8 @@ class MainActivity : BaseActivity() {
 
         text.applyTo(exampleTextView) // or exampleTextView.setText(text)
 
+        exampleTextView.setTextSize(16.sp)
+
         val list = listOf(
             Text.from("1", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))),
             Text.from("2", TextStyle.color(Color.fromAttribute(R.attr.colorAccent))),
@@ -79,8 +82,8 @@ class MainActivity : BaseActivity() {
 
         title = list.join(",", postfix = ".").getCharSequence(this)
 
-        val image =
-            Image.from("https://dejagerart.com/wp-content/uploads/2018/09/Test-Logo-Circle-black-transparent.png")
+        val image = AssetImage("test.webp")
+            //Image.from("https://dejagerart.com/wp-content/uploads/2018/09/Test-Logo-Circle-black-transparent.png")
 
 //        val image = intent.getSerializableExtra("test") as? Image ?: run {
 //

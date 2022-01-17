@@ -23,9 +23,9 @@ import kotlin.reflect.KClass
  * Created by Anton Knyazev on 2019-10-03.
  */
 class PicassoImagesProcessor(
-        private val oldImagesProcessor: ImageProcessors,
-        picasso: Picasso? = null,
-        vararg excludeImageClasses: KClass<out Image>
+    private val oldImagesProcessor: ImageProcessors,
+    picasso: Picasso? = null,
+    vararg excludeImageClasses: KClass<out Image>,
 ) : ImageProcessors() {
 
     companion object {
@@ -33,7 +33,6 @@ class PicassoImagesProcessor(
         fun setAsCurrentImagesProcessor(picasso: Picasso? = null) {
             current = PicassoImagesProcessor(current, picasso)
         }
-
     }
 
     private val excludeImageClasses = listOf(*excludeImageClasses)
@@ -51,6 +50,7 @@ class PicassoImagesProcessor(
             is JavaFileImage -> picasso.load(file)
             is UriImage -> picasso.load(uri)
             is ResourceImage -> picasso.load(resId)
+            is AssetImage -> picasso.load("file:///android_asset/$fileName")
             else -> null
         }
     }
@@ -62,7 +62,8 @@ class PicassoImagesProcessor(
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (imageView.scaleType) {
                 ImageView.ScaleType.FIT_CENTER,
-                ImageView.ScaleType.CENTER_INSIDE -> centerInside()
+                ImageView.ScaleType.CENTER_INSIDE,
+                -> centerInside()
                 ImageView.ScaleType.CENTER_CROP -> centerCrop()
             }
             into(imageView)
@@ -102,13 +103,11 @@ class PicassoImagesProcessor(
                             Image.Processor.applyBackground(it, BitmapDrawable(view.resources, bitmap))
                         }
                     }
-
                 })
             }
         } ?: with(oldImagesProcessor) {
             applyBackground(view, placeholderResId)
         }
-
     }
 
     override suspend fun Image.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
@@ -146,14 +145,11 @@ class PicassoImagesProcessor(
         } ?: with(oldImagesProcessor) {
             getStream(context, compressFormat, quality)
         }
-
     }
 
     override fun Image.preload(context: Context) {
         createRequestCreator()?.fetch() ?: with(oldImagesProcessor) {
             preload(context)
         }
-
     }
-
 }

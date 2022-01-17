@@ -54,6 +54,7 @@ open class GlideImagesProcessor(
             is BitmapImage -> load(image.bitmap)
             is DrawableImage -> load(image.drawable)
             is ByteArrayImage -> load(image.byteArray)
+            is AssetImage -> load("file:///android_asset/" + image.fileName)
             else -> null
         }
     }
