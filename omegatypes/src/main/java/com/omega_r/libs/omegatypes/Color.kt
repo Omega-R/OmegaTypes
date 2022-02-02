@@ -24,6 +24,8 @@ abstract class Color : Serializable {
 
     open fun getColorStateList(context: Context): ColorStateList = ColorStateList.valueOf(getColorInt(context))
 
+    fun withAlpha(alpha: Int) = AlphaColor(alpha, this)
+
     abstract override fun equals(other: Any?): Boolean
 
     abstract override fun hashCode(): Int
@@ -76,10 +78,21 @@ abstract class Color : Serializable {
         fun fromArgb(alpha: Int, red: Int, green: Int, blue: Int): Color = IntColor(GraphicColor.argb(alpha, red, green, blue))
 
         @JvmStatic
+        fun fromRgb(red: Int, green: Int, blue: Int): Color = fromArgb(255, red, green, blue)
+
+        @JvmStatic
         fun fromString(colorString: String): Color = HexStringColor(colorString)
 
         @JvmStatic
         fun fromColorList(colorStateList: ColorStateList): Color = ColorStateListColor(colorStateList)
+    }
+
+    data class AlphaColor(private val alpha: Int, private val color: Color) : Color() {
+
+        override fun getColorInt(context: Context): Int {
+            val colorInt = color.getColorInt(context)
+            return GraphicColor.argb(alpha, GraphicColor.red(colorInt), GraphicColor.green(colorInt), GraphicColor.blue(colorInt))
+        }
     }
 
     class IntColor(private val colorInt: Int) : Color() {
