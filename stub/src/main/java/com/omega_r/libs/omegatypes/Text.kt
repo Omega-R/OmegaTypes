@@ -1,6 +1,7 @@
 package com.omega_r.libs.omegatypes
 
 import java.io.Serializable
+import java.lang.RuntimeException
 
 interface Text : Serializable, Textable {
 
@@ -11,3 +12,7 @@ interface Text : Serializable, Textable {
     }
 
 }
+
+abstract class TextStyle : Serializable
+
+fun String.toText(textStyle: TextStyle? = null): Text = throw RuntimeException()
