@@ -21,6 +21,8 @@ open class Text : Serializable, Textable {
 
     operator fun plus(text: Text): Text = throw Exception()
 
+    override fun toText(): Text = throw Exception()
+
 }
 
 abstract class TextStyle : Serializable
