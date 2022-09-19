@@ -3,7 +3,7 @@ package com.omega_r.libs.omegatypes
 import java.io.Serializable
 import java.lang.RuntimeException
 
-interface Text : Serializable, Textable {
+open class Text : Serializable, Textable {
 
     companion object {
 
