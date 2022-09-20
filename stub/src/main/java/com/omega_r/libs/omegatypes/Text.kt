@@ -21,6 +21,10 @@ open class Text : Serializable, Textable {
 
     operator fun plus(text: Text): Text = throw Exception()
 
+    open operator fun plus(string: String): Text = throw Exception()
+
+    open operator fun plus(text: Textable): Text = throw Exception()
+
     override fun toText(): Text = throw Exception()
 
 }
