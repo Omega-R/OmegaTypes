@@ -544,6 +544,15 @@ operator fun Text?.plus(textStyle: TextStyle?): Text? {
     return this?.let { this + textStyle }
 }
 
+fun Textable.join(
+    separator: String = ", ",
+    prefix: String = "",
+    postfix: String = "",
+    limit: Int = -1,
+    truncated: String = "...",
+    vararg text: Textable
+) = (listOf(this) + text).join(separator, prefix, postfix, limit, truncated)
+
 fun List<Textable>.join(
     separator: String = ", ",
     prefix: String = "",
