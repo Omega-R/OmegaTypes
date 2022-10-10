@@ -11,6 +11,9 @@ open class Text : Serializable, Textable {
         @JvmOverloads
         fun from(string: String, textStyle: TextStyle? = null): Text = throw Exception()
 
+        @JvmStatic
+        fun empty(): Text = throw Exception()
+
     }
 
     interface StringHolder {
