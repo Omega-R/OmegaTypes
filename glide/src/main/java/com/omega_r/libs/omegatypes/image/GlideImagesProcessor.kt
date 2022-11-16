@@ -31,8 +31,8 @@ open class GlideImagesProcessor(
 
     companion object {
 
-        fun setAsCurrentImagesProcessor() {
-            current = GlideImagesProcessor(current)
+        fun setAsCurrentImagesProcessor(customRequestBuilder: CustomRequestBuilder? = null) {
+            current = GlideImagesProcessor(current, customBuilder = customRequestBuilder)
         }
 
         fun setGlideBitmapPool(context: Context) {
