@@ -12,7 +12,6 @@ import android.widget.TextView
 import java.io.Serializable
 import java.util.*
 
-
 /**
  * Created by Anton Knyazev on 18.05.2019.
  */
@@ -23,9 +22,13 @@ abstract class Color : Serializable {
 
     abstract fun getColorInt(context: Context): Int
 
-    open fun getColorStateList(context: Context): ColorStateList {
-        return ColorStateList.valueOf(getColorInt(context))
-    }
+    open fun getColorStateList(context: Context): ColorStateList = ColorStateList.valueOf(getColorInt(context))
+
+    fun withAlpha(alpha: Int) = AlphaColor(alpha, this)
+
+    abstract override fun equals(other: Any?): Boolean
+
+    abstract override fun hashCode(): Int
 
     companion object {
 
@@ -75,21 +78,62 @@ abstract class Color : Serializable {
         fun fromArgb(alpha: Int, red: Int, green: Int, blue: Int): Color = IntColor(GraphicColor.argb(alpha, red, green, blue))
 
         @JvmStatic
+        fun fromRgb(red: Int, green: Int, blue: Int): Color = fromArgb(255, red, green, blue)
+
+        @JvmStatic
         fun fromString(colorString: String): Color = HexStringColor(colorString)
 
         @JvmStatic
         fun fromColorList(colorStateList: ColorStateList): Color = ColorStateListColor(colorStateList)
+    }
 
+    data class AlphaColor(private val alpha: Int, private val color: Color) : Color() {
+
+        override fun getColorInt(context: Context): Int {
+            val colorInt = color.getColorInt(context)
+            return GraphicColor.argb(alpha, GraphicColor.red(colorInt), GraphicColor.green(colorInt), GraphicColor.blue(colorInt))
+        }
     }
 
     class IntColor(private val colorInt: Int) : Color() {
+
         override fun getColorInt(context: Context) = colorInt
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is IntColor) return false
+
+            if (colorInt != other.colorInt) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            return colorInt
+        }
     }
 
     class HexStringColor(val hexString: String) : Color() {
+
         private val colorInt: Int = GraphicColor.parseColor(hexString)
 
         override fun getColorInt(context: Context) = colorInt
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is HexStringColor) return false
+
+            if (hexString != other.hexString) return false
+            if (colorInt != other.colorInt) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = hexString.hashCode()
+            result = 31 * result + colorInt
+            return result
+        }
     }
 
     class ResourceColor(private val colorRes: Int) : Color() {
@@ -109,6 +153,19 @@ abstract class Color : Serializable {
                 context.resources.getColorStateList(colorRes)
             }
         }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is ResourceColor) return false
+
+            if (colorRes != other.colorRes) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            return colorRes
+        }
     }
 
     class AttrThemeColor(private val attrInt: Int) : Color() {
@@ -116,7 +173,6 @@ abstract class Color : Serializable {
         companion object {
 
             private val cache = WeakHashMap<Resources.Theme, SparseIntArray>()
-
         }
 
         override fun getColorInt(context: Context): Int {
@@ -149,6 +205,18 @@ abstract class Color : Serializable {
             }
         }
 
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is AttrThemeColor) return false
+
+            if (attrInt != other.attrInt) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            return attrInt
+        }
     }
 
     class ColorStateListColor(private val colorStateList: ColorStateList) : Color() {
@@ -161,8 +229,19 @@ abstract class Color : Serializable {
             return colorStateList
         }
 
-    }
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is ColorStateListColor) return false
 
+            if (colorStateList != other.colorStateList) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            return colorStateList.hashCode()
+        }
+    }
 }
 
 var TextView.textColor: Color
@@ -187,5 +266,5 @@ var View.backgroundColor: Color?
     get() = (background as? ColorDrawable)?.color?.let { Color.fromInt(it) }
     set(value) {
         value?.let { setBackgroundColor(it.getColorInt(context)) }
-                ?: setBackgroundDrawable(null)
+            ?: setBackgroundDrawable(null)
     }

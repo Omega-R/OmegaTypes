@@ -1,24 +1,13 @@
 package com.omega_r.libs.omegatypes
 
-import android.app.Activity
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.text.Spannable
-import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.style.DynamicDrawableSpan
-import android.text.style.ImageSpan
-import com.omega_r.libs.omegatypes.decoders.toBitmap
 import com.omega_r.libs.omegatypes.image.Image
-import com.omega_r.libs.omegatypes.image.ImageProcessors
-import com.omega_r.libs.omegatypes.image.ImageProcessors.Companion
-import com.omega_r.libs.omegatypes.image.getStream
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ImageText(private val image: Image) : Text(null) {
 

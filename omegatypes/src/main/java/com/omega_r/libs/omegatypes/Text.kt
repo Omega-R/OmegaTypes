@@ -69,6 +69,12 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         @JvmStatic
         fun from(image: Image): Text = ImageText(image)
+
+        fun format(stringRes: Int, vararg formatArgs: Serializable, textStyle: TextStyle? = null) =
+            from(stringRes, formatArgs = formatArgs, textStyle)
+
+        fun format(format: Text, vararg formatArgs: Serializable, textStyle: TextStyle? = null): Text =
+            TextFormatText(format, formatArgs = formatArgs, textStyle)
     }
 
     open fun isEmpty(): Boolean = true
@@ -124,13 +130,17 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
     private class StringText constructor(
         private val string: String?,
-        textStyle: TextStyle?
+        textStyle: TextStyle?,
     ) : Text(textStyle) {
 
         override fun isEmpty(): Boolean = string.isNullOrEmpty()
 
         override fun getString(context: Context): String? {
             return string
+        }
+
+        override fun toString(): String {
+            return string.toString()
         }
 
         override fun equals(other: Any?): Boolean {
@@ -151,7 +161,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
     private class CharSequenceText constructor(
         private var charSequence: CharSequence,
-        textStyle: TextStyle?
+        textStyle: TextStyle?,
     ) : Text(textStyle) {
 
         companion object {
@@ -168,6 +178,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         override fun getCharSequence(context: Context, textStyle: TextStyle?): CharSequence? {
             return (defaultTextStyle + textStyle)?.applyStyle(context, charSequence) ?: charSequence
+        }
+
+        override fun toString(): String {
+            return charSequence.toString()
         }
 
         @Throws(IOException::class)
@@ -216,7 +230,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
     private class ResourceText constructor(
         private val stringRes: Int,
-        textStyle: TextStyle?
+        textStyle: TextStyle?,
     ) : Text(textStyle) {
 
         override fun isEmpty(): Boolean = stringRes <= 0
@@ -229,6 +243,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
         override fun getString(context: Context): String {
             return context.getString(stringRes)
+        }
+
+        override fun toString(): String {
+            return "ResourceText($stringRes)"
         }
 
         override fun equals(other: Any?): Boolean {
@@ -249,7 +267,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
 
     private abstract class FormatText(
         protected vararg val formatArgs: Serializable,
-        defaultTextStyle: TextStyle?
+        defaultTextStyle: TextStyle?,
     ) : Text(defaultTextStyle) {
 
         protected abstract fun getText(context: Context): CharSequence
@@ -304,13 +322,16 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
     private class ResourceFormatText constructor(
         private val stringRes: Int,
         vararg formatArgs: Serializable,
-        textStyle: TextStyle?
+        textStyle: TextStyle?,
     ) : FormatText(formatArgs = *formatArgs, defaultTextStyle = textStyle) {
 
         override fun isEmpty(): Boolean = stringRes <= 0
 
-
         override fun getText(context: Context): CharSequence = context.getText(stringRes)
+
+        override fun toString(): String {
+            return "ResourceFormatText($stringRes, $formatArgs)"
+        }
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -332,7 +353,7 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
         private val res: Int,
         private val quantity: Int,
         vararg formatArgs: Serializable,
-        textStyle: TextStyle? = null
+        textStyle: TextStyle? = null,
     ) : FormatText(formatArgs = *formatArgs, defaultTextStyle = textStyle) {
 
         override fun isEmpty(): Boolean = res <= 0
@@ -360,11 +381,48 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             result = 31 * result + formatArgs.contentHashCode()
             return result
         }
+
+        override fun toString(): String {
+            return "PluralsFormatText(res=$res, quantity=$quantity, formatArgs=$formatArgs)"
+        }
+    }
+
+    private class TextFormatText(
+        private val text: Text,
+        vararg formatArgs: Serializable,
+        textStyle: TextStyle? = null,
+    ) : FormatText(formatArgs = formatArgs, defaultTextStyle = textStyle) {
+
+        override fun isEmpty(): Boolean {
+            return text.isEmpty()
+        }
+
+        override fun getText(context: Context): CharSequence {
+            return text.getCharSequence(context) ?: ""
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is TextFormatText) return false
+            if (!super.equals(other)) return false
+
+            if (text != other.text) return false
+            if (!formatArgs.contentEquals(other.formatArgs)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + text.hashCode()
+            result = 31 * result + formatArgs.contentHashCode()
+            return result
+        }
     }
 
     private class ArrayText constructor(
         private vararg val texts: Text,
-        textStyle: TextStyle?
+        textStyle: TextStyle?,
     ) : Text(textStyle) {
 
         override fun isEmpty(): Boolean {
@@ -412,6 +470,10 @@ open class Text(protected val defaultTextStyle: TextStyle?) : Serializable, Text
             var result = super.hashCode()
             result = 31 * result + texts.contentHashCode()
             return result
+        }
+
+        override fun toString(): String {
+            return "ArrayText(texts=$texts)"
         }
     }
 
@@ -482,12 +544,21 @@ operator fun Text?.plus(textStyle: TextStyle?): Text? {
     return this?.let { this + textStyle }
 }
 
+fun Textable.join(
+    separator: String = ", ",
+    prefix: String = "",
+    postfix: String = "",
+    limit: Int = -1,
+    truncated: String = "...",
+    vararg text: Textable
+) = (listOf(this) + text).join(separator, prefix, postfix, limit, truncated)
+
 fun List<Textable>.join(
     separator: String = ", ",
     prefix: String = "",
     postfix: String = "",
     limit: Int = -1,
-    truncated: String = "..."
+    truncated: String = "...",
 ): Text {
     var buffer = if (prefix.isNotEmpty()) Text.from(prefix) else Text.from()
 

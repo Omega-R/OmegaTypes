@@ -26,8 +26,7 @@ data class UrlImage(val baseUrl: String? = null, val relativeUrl: String) : Base
         private fun String.isAbsoluteUrl(): Boolean = PATTERN_ABSOLUTE_URL.matcher(this).matches()
 
     }
-
-
+    
     val url: String
         get() = if (relativeUrl.isAbsoluteUrl()) relativeUrl else {
             val baseUrl = (baseUrl ?: defaultBaseUrl ?: "").removeSuffix("/")

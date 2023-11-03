@@ -24,20 +24,20 @@ import kotlin.reflect.KClass
  * Created by Anton Knyazev on 2019-10-03.
  */
 open class GlideImagesProcessor(
-        protected val oldImagesProcessor: ImageProcessors,
-        vararg excludeImageClasses: KClass<out Image>
+    protected val oldImagesProcessor: ImageProcessors,
+    vararg excludeImageClasses: KClass<out Image>,
+    private val customBuilder: CustomRequestBuilder? = null,
 ) : ImageProcessors() {
 
     companion object {
 
-        fun setAsCurrentImagesProcessor() {
-            current = GlideImagesProcessor(current)
+        fun setAsCurrentImagesProcessor(customRequestBuilder: CustomRequestBuilder? = null) {
+            current = GlideImagesProcessor(current, customBuilder = customRequestBuilder)
         }
 
         fun setGlideBitmapPool(context: Context) {
             BitmapDecoders.current = SimpleBitmapDecoders(GlideBitmapPool(Glide.get(context).bitmapPool))
         }
-
     }
 
     private val excludeImageClasses = listOf(*excludeImageClasses)
@@ -54,66 +54,66 @@ open class GlideImagesProcessor(
             is BitmapImage -> load(image.bitmap)
             is DrawableImage -> load(image.drawable)
             is ByteArrayImage -> load(image.byteArray)
-            else -> null
+            is AssetImage -> load("file:///android_asset/" + image.fileName)
+            else -> if (customBuilder?.handles(image) == true) customBuilder.createRequestBuilder(this, image) else null
         }
     }
 
     override fun Image.applyImage(imageView: ImageView, placeholderResId: Int, onImageApplied: (() -> Unit)?) {
         Glide.with(imageView)
-                .asDrawable()
-                .createRequestBuilder(this)
-                ?.applyPlaceholder(placeholderResId)
-                ?.listener(GlideImageRequestListener(onImageApplied))
-                ?.into(imageView)
-                ?: applyOld { applyImage(imageView, placeholderResId) }
+            .asDrawable()
+            .createRequestBuilder(this)
+            ?.applyPlaceholder(placeholderResId)
+            ?.listener(GlideImageRequestListener(onImageApplied))
+            ?.into(imageView)
+            ?: applyOld { applyImage(imageView, placeholderResId) }
     }
 
     override fun Image.applyBackground(view: View, placeholderResId: Int) {
         Image.Processor.applyEmptyBackground(view, placeholderResId)
         Glide.with(view)
-                .asDrawable()
-                .createRequestBuilder(this)
-                ?.applyPlaceholder(placeholderResId)
-                ?.into(object : CustomViewTarget<View, Drawable>(view) {
+            .asDrawable()
+            .createRequestBuilder(this)
+            ?.applyPlaceholder(placeholderResId)
+            ?.into(object : CustomViewTarget<View, Drawable>(view) {
 
-                    override fun onLoadFailed(errorDrawable: Drawable?) {
-                        Image.Processor.applyBackground(view, errorDrawable)
-                    }
+                override fun onLoadFailed(errorDrawable: Drawable?) {
+                    Image.Processor.applyBackground(view, errorDrawable)
+                }
 
-                    override fun onResourceCleared(placeholder: Drawable?) {
-                        Image.Processor.applyBackground(view, placeholder)
-                    }
+                override fun onResourceCleared(placeholder: Drawable?) {
+                    Image.Processor.applyBackground(view, placeholder)
+                }
 
-                    override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-                        Image.Processor.applyBackground(view, resource)
-                    }
-
-                })
-                ?: applyOld { applyBackground(view, placeholderResId) }
+                override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
+                    Image.Processor.applyBackground(view, resource)
+                }
+            })
+            ?: applyOld { applyBackground(view, placeholderResId) }
     }
 
     override suspend fun Image.getStream(context: Context, compressFormat: Bitmap.CompressFormat, quality: Int): InputStream {
         return Glide.with(context)
-                .asBitmap()
-                .createRequestBuilder(this)
-                ?.run {
-                    val futureTarget = submit()
-                    try {
-                        val bitmap = futureTarget.get()
-                        bitmap.toInputStream(compressFormat, quality)
-                    } finally {
-                        Glide.with(context)
-                                .clear(futureTarget)
-                    }
-                } ?: applyOld { getStream(context, compressFormat, quality) }
+            .asBitmap()
+            .createRequestBuilder(this)
+            ?.run {
+                val futureTarget = submit()
+                try {
+                    val bitmap = futureTarget.get()
+                    bitmap.toInputStream(compressFormat, quality)
+                } finally {
+                    Glide.with(context)
+                        .clear(futureTarget)
+                }
+            } ?: applyOld { getStream(context, compressFormat, quality) }
     }
 
     override fun Image.preload(context: Context) {
         Glide.with(context)
-                .asDrawable()
-                .createRequestBuilder(this)
-                ?.preload()
-                ?: applyOld { preload(context) }
+            .asDrawable()
+            .createRequestBuilder(this)
+            ?.preload()
+            ?: applyOld { preload(context) }
     }
 
     protected fun <T> RequestBuilder<T>.applyPlaceholder(placeholderResId: Int): RequestBuilder<T> {
@@ -123,19 +123,27 @@ open class GlideImagesProcessor(
     protected inline fun <R> applyOld(block: ImageProcessors.() -> R): R {
         return block(oldImagesProcessor)
     }
+
+    interface CustomRequestBuilder {
+
+        fun handles(image: Image): Boolean
+
+        fun <T> createRequestBuilder(builder: RequestBuilder<T>, image: Image): RequestBuilder<T>?
+    }
 }
 
 class GlideImageRequestListener(private val onImageLoaded: (() -> Unit)?) : RequestListener<Drawable> {
 
     companion object {
+
         private val TAG = GlideImageRequestListener::class.java.name
     }
 
     override fun onLoadFailed(
-            e: GlideException?,
-            model: Any?,
-            target: Target<Drawable>?,
-            isFirstResource: Boolean
+        e: GlideException?,
+        model: Any?,
+        target: Target<Drawable>?,
+        isFirstResource: Boolean,
     ): Boolean {
         Log.e(TAG, "Image load failed: ", e)
         if (isFirstResource) {
@@ -145,11 +153,11 @@ class GlideImageRequestListener(private val onImageLoaded: (() -> Unit)?) : Requ
     }
 
     override fun onResourceReady(
-            resource: Drawable,
-            model: Any?,
-            target: Target<Drawable>,
-            dataSource: DataSource,
-            isFirstResource: Boolean
+        resource: Drawable,
+        model: Any?,
+        target: Target<Drawable>,
+        dataSource: DataSource,
+        isFirstResource: Boolean,
     ): Boolean {
         target.onResourceReady(resource, null)
         if (isFirstResource) {

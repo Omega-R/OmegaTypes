@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+    id 'kotlin'
+    id 'com.github.dcendents.android-maven'
+
+}
+group = 'com.github.Omega-R.OmegaTypes'
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_7
+    targetCompatibility = JavaVersion.VERSION_1_7
+}

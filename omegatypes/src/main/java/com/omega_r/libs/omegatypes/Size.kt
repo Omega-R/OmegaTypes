@@ -19,6 +19,8 @@ abstract class Size : Serializable {
 
     companion object {
 
+        val ZERO = 0.px
+
         @JvmStatic
         fun from(size: Float, unit: Unit): Size = SimpleSize(size, unit)
 

@@ -1,13 +1,21 @@
 package com.omega_r.libs.omegatypes
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Typeface
+import android.text.InputFilter
 import android.text.SpannableString
-import android.text.style.*
-import java.io.Serializable
+import android.text.Spanned
+import android.text.TextUtils
+import android.text.style.AbsoluteSizeSpan
 import android.text.style.ForegroundColorSpan
+import android.text.style.LeadingMarginSpan
+import android.text.style.StrikethroughSpan
 import android.text.style.StyleSpan
+import android.text.style.TypefaceSpan
+import android.text.style.UnderlineSpan
 import com.omega_r.libs.omegatypes.tools.TypefaceSpanCompat
+import java.io.Serializable
+import java.util.Locale
 
 /**
  * Created by Anton Knyazev on 25.04.2019.
@@ -62,6 +70,29 @@ abstract class TextStyle : Serializable {
         @JvmStatic
         fun size(size: Size): TextStyle = SizeTextStyle(size)
 
+        @JvmStatic
+        fun leadingMargin(firstMargin: Size, nextMargin: Size): TextStyle = LeadingMarginTextStyle(firstMargin, nextMargin)
+
+        @JvmStatic
+        fun paragraphMargin(margin: Size): TextStyle = leadingMargin(margin, Size.ZERO)
+
+        @JvmStatic
+        fun filter(filter: InputFilter): TextStyle = FilterTextStyle(filter)
+
+        @JvmStatic
+        fun uppercase(): TextStyle = filter(InputFilter.AllCaps())
+
+        @JvmStatic
+        fun lowercase(): TextStyle = filter(LowercaseInputFilter())
+
+        @JvmStatic
+        fun capitalize(): TextStyle = filter(CapitalizeInputFilter())
+
+        @JvmStatic
+        fun decapitalize(): TextStyle = filter(DecapitalizeInputFilter())
+
+        @JvmStatic
+        fun length(max: Int): TextStyle = filter(InputFilter.LengthFilter(max))
     }
 
     operator fun plus(textStyle: TextStyle?): TextStyle {
@@ -81,7 +112,7 @@ abstract class TextStyle : Serializable {
         }
     }
 
-    fun applyStyle(context: Context, charSequence: CharSequence): CharSequence {
+    open fun applyStyle(context: Context, charSequence: CharSequence): CharSequence {
         return getSpannableString(charSequence).apply {
             applyStyle(context)
         }
@@ -89,18 +120,22 @@ abstract class TextStyle : Serializable {
 
     protected abstract fun SpannableString.applyStyle(context: Context)
 
-    private fun getSpannableString(charSequence: CharSequence): SpannableString {
-        return if (charSequence is SpannableString) charSequence else SpannableString(charSequence)
+    protected open fun getSpannableString(charSequence: CharSequence): SpannableString {
+        return SpannableString.valueOf(charSequence)
     }
 
     private class Array(internal vararg val textStyleArray: TextStyle) : TextStyle() {
 
-        override fun SpannableString.applyStyle(context: Context) {
+        override fun applyStyle(context: Context, charSequence: CharSequence): CharSequence {
+            var result = charSequence
             textStyleArray.forEach {
-                it.apply {
-                    applyStyle(context)
-                }
+                result = it.applyStyle(context, result)
             }
+            return result
+        }
+
+        override fun SpannableString.applyStyle(context: Context) {
+            // nothing
         }
     }
 
@@ -110,7 +145,6 @@ abstract class TextStyle : Serializable {
             val color = color.getColorInt(context)
             setSpan(ForegroundColorSpan(color), 0, length, 0)
         }
-
     }
 
     private class FontStyleTextStyle(private val typeFaceStyle: Int) : TextStyle() {
@@ -134,7 +168,6 @@ abstract class TextStyle : Serializable {
                 setSpan(TypefaceSpan(it), 0, length, 0)
             }
         }
-
     }
 
     private class TypefaceFontTextStyle(private val fontTypeface: Typeface) : TextStyle() {
@@ -142,7 +175,6 @@ abstract class TextStyle : Serializable {
         override fun SpannableString.applyStyle(context: Context) {
             setSpan(TypefaceSpanCompat(typeface = fontTypeface), 0, length, 0)
         }
-
     }
 
     private class SizeTextStyle(private val size: Size) : TextStyle() {
@@ -150,7 +182,6 @@ abstract class TextStyle : Serializable {
         override fun SpannableString.applyStyle(context: Context) {
             setSpan(AbsoluteSizeSpan(size.getPixelSize(context), false), 0, length, 0)
         }
-
     }
 
     private class StrikethroughTextStyle : TextStyle() {
@@ -158,7 +189,97 @@ abstract class TextStyle : Serializable {
         override fun SpannableString.applyStyle(context: Context) {
             setSpan(StrikethroughSpan(), 0, length, 0)
         }
+    }
 
+    private class LeadingMarginTextStyle(private val firstLineMargin: Size, private val nextLinesMargin: Size) : TextStyle() {
+
+        override fun SpannableString.applyStyle(context: Context) {
+            val firstMargin = firstLineMargin.getPixelOffset(context)
+            val nextMargin = nextLinesMargin.getPixelOffset(context)
+            setSpan(LeadingMarginSpan.Standard(firstMargin, nextMargin), 0, length, 0)
+        }
+    }
+
+    private class FilterTextStyle(private val filter: InputFilter) : TextStyle() {
+
+        override fun SpannableString.applyStyle(context: Context) {
+            // nothing
+        }
+
+        override fun getSpannableString(charSequence: CharSequence): SpannableString {
+            val spannableString = super.getSpannableString(charSequence)
+            val result = filter.filter(charSequence, 0, charSequence.length, spannableString, 0, charSequence.length)
+                ?: charSequence
+            return SpannableString.valueOf(result)
+        }
+    }
+
+    private class LowercaseInputFilter : InputFilter {
+
+        override fun filter(source: CharSequence, start: Int, end: Int, dest: Spanned?, dstart: Int, dend: Int): CharSequence? {
+
+            for (i in start until end) {
+                if (source[i].isUpperCase()) {
+                    val v = CharArray(end - start)
+                    TextUtils.getChars(source, start, end, v, 0)
+                    val s = String(v).lowercase(Locale.getDefault())
+
+                    return if (source is Spanned) {
+                        val sp = SpannableString(s)
+                        TextUtils.copySpansFrom(source, start, end, null, sp, 0)
+                        sp
+                    } else {
+                        s
+                    }
+                }
+            }
+
+            return null // keep original
+        }
+    }
+
+    private class CapitalizeInputFilter : InputFilter {
+
+        override fun filter(source: CharSequence, start: Int, end: Int, dest: Spanned?, dstart: Int, dend: Int): CharSequence? {
+            val firstChar = source[start]
+            if (firstChar.isLowerCase()) {
+                val v = CharArray(end - start)
+                TextUtils.getChars(source, start, end, v, 0)
+                val s = String(v).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+
+                return if (source is Spanned) {
+                    val sp = SpannableString(s)
+                    TextUtils.copySpansFrom(source, start, end, null, sp, 0)
+                    sp
+                } else {
+                    s
+                }
+            }
+
+            return null // keep original
+        }
+    }
+
+    private class DecapitalizeInputFilter : InputFilter {
+
+        override fun filter(source: CharSequence, start: Int, end: Int, dest: Spanned?, dstart: Int, dend: Int): CharSequence? {
+            val firstChar = source[start]
+            if (firstChar.isUpperCase()) {
+                val v = CharArray(end - start)
+                TextUtils.getChars(source, start, end, v, 0)
+                val s = String(v).replaceFirstChar { it.lowercase(Locale.getDefault()) }
+
+                return if (source is Spanned) {
+                    val sp = SpannableString(s)
+                    TextUtils.copySpansFrom(source, start, end, null, sp, 0)
+                    sp
+                } else {
+                    s
+                }
+            }
+
+            return null // keep original
+        }
     }
 
 }
