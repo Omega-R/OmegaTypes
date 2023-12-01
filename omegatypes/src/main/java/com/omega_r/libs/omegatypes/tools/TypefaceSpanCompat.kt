@@ -29,9 +29,17 @@ class TypefaceSpanCompat(
         return 0
     }
 
-    override fun writeToParcel(dest: Parcel, flags: Int) {
+    fun getSpanTypeIdInternal(): Int {
+        return 13
+    }
+
+    fun writeToParcelInternal(dest: Parcel, flags: Int) {
         dest.writeString(family)
         typeface?.let { LeakyTypefaceStorageCompat.writeTypefaceToParcel(it, dest) }
+    }
+
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        writeToParcelInternal(dest, flags)
     }
 
     override fun updateDrawState(ds: TextPaint) {
