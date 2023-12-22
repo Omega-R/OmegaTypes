@@ -28,7 +28,7 @@ data class UrlImage(val baseUrl: String? = null, val relativeUrl: String) : Base
     }
     
     val url: String
-        get() = if (relativeUrl.isAbsoluteUrl()) relativeUrl else {
+        get() = if ((baseUrl == null && defaultBaseUrl == null) || relativeUrl.isAbsoluteUrl() ) relativeUrl else {
             val baseUrl = (baseUrl ?: defaultBaseUrl ?: "").removeSuffix("/")
             val relativeUrl = relativeUrl.removePrefix("/")
             "$baseUrl/$relativeUrl"
