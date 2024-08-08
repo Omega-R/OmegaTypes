@@ -65,6 +65,9 @@ class PicassoImagesProcessor(
                 ImageView.ScaleType.CENTER_INSIDE,
                 -> centerInside()
                 ImageView.ScaleType.CENTER_CROP -> centerCrop()
+                else -> {
+                    // nothing
+                }
             }
             into(imageView)
         } ?: with(oldImagesProcessor) {
