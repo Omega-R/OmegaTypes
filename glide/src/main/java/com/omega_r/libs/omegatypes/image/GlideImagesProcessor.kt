@@ -10,6 +10,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.target.Target
@@ -19,6 +20,9 @@ import com.omega_r.libs.omegatypes.decoders.SimpleBitmapDecoders
 import com.omega_r.libs.omegatypes.image.Image.Companion.NO_PLACEHOLDER_RES
 import java.io.InputStream
 import kotlin.reflect.KClass
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
 
 /**
  * Created by Anton Knyazev on 2019-10-03.
@@ -27,6 +31,7 @@ open class GlideImagesProcessor(
     protected val oldImagesProcessor: ImageProcessors,
     vararg excludeImageClasses: KClass<out Image>,
     private val customBuilder: CustomRequestBuilder? = null,
+    private val fadeDuration: Duration? = 500.milliseconds
 ) : ImageProcessors() {
 
     companion object {
@@ -64,7 +69,8 @@ open class GlideImagesProcessor(
             .asDrawable()
             .createRequestBuilder(this)
             ?.applyPlaceholder(placeholderResId)
-            ?.listener(GlideImageRequestListener(onImageApplied))
+            ?.addListener(GlideImageRequestListener(onImageApplied))
+            ?.run { fadeDuration?.let { transition(DrawableTransitionOptions.withCrossFade(it.toInt(DurationUnit.MILLISECONDS)))}}
             ?.into(imageView)
             ?: applyOld { applyImage(imageView, placeholderResId) }
     }
@@ -159,10 +165,9 @@ class GlideImageRequestListener(private val onImageLoaded: (() -> Unit)?) : Requ
         dataSource: DataSource,
         isFirstResource: Boolean,
     ): Boolean {
-        target.onResourceReady(resource, null)
         if (isFirstResource) {
             onImageLoaded?.invoke()
         }
-        return true
+        return false
     }
 }
