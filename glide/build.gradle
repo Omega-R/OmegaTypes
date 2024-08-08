@@ -1,16 +1,29 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'maven-publish'
 
-apply plugin: 'com.github.dcendents.android-maven'
 group = 'com.github.Omega-R'
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId 'com.github.Omega-R'
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
+}
+
+
 android {
-    compileSdkVersion 28
+    compileSdkVersion 34
 
 
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 28
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
 

@@ -1,10 +1,21 @@
 plugins {
     id 'java-library'
     id 'kotlin'
-    id 'com.github.dcendents.android-maven'
-
+    id 'maven-publish'
 }
 group = 'com.github.Omega-R.OmegaTypes'
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId 'com.github.Omega-R'
+            afterEvaluate {
+                from components.java
+            }
+        }
+    }
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_1_7
     targetCompatibility = JavaVersion.VERSION_1_7
