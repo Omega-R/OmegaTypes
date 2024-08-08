@@ -9,10 +9,8 @@ android {
 
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 21
         targetSdkVersion 34
-        versionCode 1
-        versionName "1.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -24,6 +22,15 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    namespace 'com.omega_r.libs.omegatypes.glide'
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packagingOptions {
+        pickFirst  'META-INF/*'
+    }
 
 }
 
@@ -33,7 +40,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // Drive
-    api('com.google.apis:google-api-services-drive:v3-rev136-1.25.0') {
+    api('com.google.apis:google-api-services-drive:v3-rev197-1.25.0') {
         exclude group: 'org.apache.httpcomponents'
     }
     api 'com.google.http-client:google-http-client-gson:1.31.0'
